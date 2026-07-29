@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    /* 1. Page Background & Centering */
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #191919; /* Matches Notion Dark Mode */
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* 2. Main Container Box */
+    .quote-container {
+      background-color: #222222; /* Card background */
+      border: 1px solid #333333;   /* Subtle outline border */
+      border-radius: 12px;         /* Smooth rounded corners */
+      padding: 20px 28px;
+      max-width: 650px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 3. Header Row (Title & Navigation Arrows) */
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .quote-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #f59e0b; /* Warm Gold Glow matching QuoteStack */
+      font-weight: 600;
+    }
+
+    /* Arrow Buttons Styling */
+    .arrow-btn {
+      background: #2a2a2a;
+      border: 1px solid #444444;
+      color: #ffffff;
+      font-size: 14px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%; /* Circle buttons */
+      cursor: pointer;
+      margin-left: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .arrow-btn:hover {
+      background: #f59e0b; /* Turn gold on hover */
+      color: #111111;
+      border-color: #f59e0b;
+    }
+
+    /* 4. Quote Text Style */
+    .quote-text {
+      font-size: 16px;
+      font-style: italic;
+      line-height: 1.6;
+      color: #e5e5e5;
+      margin-bottom: 10px;
+      min-height: 50px; /* Prevents card from jumping size */
+    }
+
+    /* 5. Author Style */
+    .quote-author {
+      font-size: 13px;
+      color: #a3a3a3;
+      font-weight: 500;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- The Visual Layout -->
+  <div class="quote-container">
+    <div class="header-row">
+      <div class="quote-title">💬 Quote Spotlight</div>
+      <div class="controls">
+        <button class="arrow-btn" onclick="prevQuote()">&#10094;</button>
+        <button class="arrow-btn" onclick="nextQuote()">&#10095;</button>
+      </div>
+    </div>
+    
+    <div id="quote" class="quote-text">Loading quote...</div>
+    <div id="author" class="quote-author"></div>
+  </div>
+
+  <!-- The Interactive Logic -->
+  <script>
+    // 1. Pre-loaded array of literary quotes
+    const quotes = [
+      { text: "A reader lives a thousand lives before he dies. The man who never reads lives only one.", author: "George R.R. Martin" },
+      { text: "Until I feared I would lose it, I never loved reading. One does not love breathing.", author: "Harper Lee" },
+      { text: "There is no friend as loyal as a book.", author: "Ernest Hemingway" },
+      { text: "Books are a uniquely portable magic.", author: "Stephen King" },
+      { text: "The reading of all good books is like a conversation with the finest minds of past centuries.", author: "René Descartes" },
+      { text: "We read to know we're not alone.", author: "C.S. Lewis" },
+      { text: "Words are, in my not-so-humble opinion, our most inexhaustible source of magic.", author: "J.K. Rowling" },
+      { text: "I have always imagined that Paradise will be a kind of library.", author: "Jorge Luis Borges" }
+    ];
+
+    // 2. Pick today's starting index based on day of the year
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+
+    // Set starting position
+    let currentIndex = dayOfYear % quotes.length;
+
+    // 3. Function to display the quote at the current position
+    function displayQuote() {
+      const current = quotes[currentIndex];
+      document.getElementById("quote").innerText = `"${current.text}"`;
+      document.getElementById("author").innerText = `— ${current.author}`;
+    }
+
+    // 4. Function for the Next button ( > )
+    function nextQuote() {
+      currentIndex = (currentIndex + 1) % quotes.length;
+      displayQuote();
+    }
+
+    // 5. Function for the Previous button ( < )
+    function prevQuote() {
+      currentIndex = (currentIndex - 1 + quotes.length) % quotes.length;
+      displayQuote();
+    }
+
+    // Run once on initial page load
+    displayQuote();
+  </script>
+
+</body>
+</html>
