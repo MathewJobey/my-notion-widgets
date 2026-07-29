@@ -64,6 +64,19 @@
       border-color: #f59e0b;
     }
 
+    /* Wrapper for smooth transition animation */
+    .quote-content {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Hidden state during fade-out animation */
+    .quote-content.fade-out {
+      opacity: 0;
+      transform: translateY(4px); /* Subtle downward slide */
+    }
+
     /* Quote body text */
     .quote-text {
       font-size: 15px;
@@ -92,69 +105,101 @@
         <button class="arrow-btn" onclick="nextQuote()">&#10095;</button>
       </div>
     </div>
-    <div class="quote-text" id="quoteText">Loading quote...</div>
-    <div class="quote-author" id="quoteAuthor"></div>
+    
+    <!-- Animated Container Wrapper -->
+    <div id="quoteContent" class="quote-content">
+      <div class="quote-text" id="quoteText">Loading quote...</div>
+      <div class="quote-author" id="quoteAuthor"></div>
+    </div>
   </div>
 
   <script>
     let quotesList = [];
-    let currentIndex = 0;
+let historyStack = [];
+let historyIndex = -1;
 
-    // Step 1: Load the local JSON file
-    async function loadQuotes() {
-      try {
-        // Simple relative path fetch - zero CORS issues!
-        const response = await fetch('quotes.json');
-        quotesList = await response.json();
+// Maximum number of quote IDs to keep in history memory
+const MAX_HISTORY = 50;
 
-        if (quotesList.length > 0) {
-          // Calculate today's quote based on calendar date
-          currentIndex = getTodayIndex(quotesList.length);
-          displayQuote();
-        } else {
-          document.getElementById("quoteText").innerText = "No quotes found in quotes.json.";
-        }
-      } catch (error) {
-        console.error("Error loading quotes.json:", error);
-        document.getElementById("quoteText").innerText = "Error loading quotes.json file.";
-      }
+// Load local JSON file
+async function loadQuotes() {
+  try {
+    const response = await fetch('quotes.json');
+    quotesList = await response.json();
+
+    if (quotesList.length > 0) {
+      // Show initial random quote on load
+      nextQuote();
+    } else {
+      document.getElementById("quoteText").innerText = "No quotes found in quotes.json.";
+    }
+  } catch (error) {
+    console.error("Error loading quotes.json:", error);
+    document.getElementById("quoteText").innerText = "Error loading quotes.json file.";
+  }
+}
+
+// Smoothly updates quote on screen with a fade transition
+function renderQuoteWithAnimation(quoteIndex) {
+  const container = document.getElementById("quoteContent");
+
+  // 1. Fade out current content
+  container.classList.add("fade-out");
+
+  // 2. Wait 300ms for fade-out, then swap text and fade back in
+  setTimeout(() => {
+    const quote = quotesList[quoteIndex];
+    document.getElementById("quoteText").innerText = `"${quote.text}"`;
+    document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
+
+    // Remove fade-out class to trigger fade-in
+    container.classList.remove("fade-out");
+  }, 300);
+}
+
+// Handles clicking Next (>) or initial load
+function nextQuote() {
+  if (quotesList.length === 0) return;
+
+  // If we are currently stepping backward through history, move forward in existing history
+  if (historyIndex < historyStack.length - 1) {
+    historyIndex++;
+    renderQuoteWithAnimation(historyStack[historyIndex]);
+  } else {
+    // Generate a new random quote index
+    const randomIndex = Math.floor(Math.random() * quotesList.length);
+    historyStack.push(randomIndex);
+
+    // If history goes over our limit, drop the oldest item from the front
+    if (historyStack.length > MAX_HISTORY) {
+      historyStack.shift();
     }
 
-    // Calculate day of the year (1 to 365) to pick today's quote
-    function getTodayIndex(totalQuotes) {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), 0, 0);
-      const diff = now - start;
-      const oneDay = 1000 * 60 * 60 * 24; // milliseconds in a day
-      const dayOfYear = Math.floor(diff / oneDay);
-      
-      // Modulo math ensures the number stays within list limits
-      return dayOfYear % totalQuotes;
-    }
+    // Set position pointer to the newest item at the end of history
+    historyIndex = historyStack.length - 1;
+    renderQuoteWithAnimation(randomIndex);
+  }
+}
 
-    // Render current quote on screen
-    function displayQuote() {
-      const quote = quotesList[currentIndex];
-      document.getElementById("quoteText").innerText = `"${quote.text}"`;
-      document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
-    }
+// Handles clicking Back (<)
+function prevQuote() {
+  if (quotesList.length === 0) return;
 
-    // Step 2: Next arrow click handler
-    function nextQuote() {
-      if (quotesList.length === 0) return;
-      currentIndex = (currentIndex + 1) % quotesList.length;
-      displayQuote();
-    }
+  // Step back 1 spot in history if available
+  if (historyIndex > 0) {
+    historyIndex--;
+    renderQuoteWithAnimation(historyStack[historyIndex]);
+  } else {
+    // If at the start of history, pick another random quote
+    const randomIndex = Math.floor(Math.random() * quotesList.length);
+    historyStack.unshift(randomIndex);
+    historyIndex = 0;
+    renderQuoteWithAnimation(randomIndex);
+  }
+}
 
-    // Step 3: Previous arrow click handler
-    function prevQuote() {
-      if (quotesList.length === 0) return;
-      currentIndex = (currentIndex - 1 + quotesList.length) % quotesList.length;
-      displayQuote();
-    }
-
-    // Run as soon as page loads
-    loadQuotes();
+// Run as soon as page loads
+loadQuotes();
   </script>
 
 </body>
