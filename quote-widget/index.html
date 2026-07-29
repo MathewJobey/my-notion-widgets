@@ -37,19 +37,20 @@
       margin-bottom: 12px;
     }
 
+    /* Title text with warm golden tinge */
     .title-text {
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1.5px;
-      color: #f59e0b;
+      color: #d49e1e; /* Rich warm gold from your banner */
       text-transform: uppercase;
     }
 
-    /* Arrow button styling */
+    /* Subtle arrow button styling */
     .arrow-btn {
       background-color: #2a2a2a;
-      border: 1px solid #444444;
-      color: #ffffff;
+      border: 1px solid #3d3d3d;
+      color: #bbbbbb;
       border-radius: 50%;
       width: 28px;
       height: 28px;
@@ -58,10 +59,11 @@
       transition: all 0.2s ease;
     }
 
+    /* Soft golden hover state */
     .arrow-btn:hover {
-      background-color: #f59e0b;
-      color: #111111;
-      border-color: #f59e0b;
+      background-color: #382e18; /* Dark subtle gold background */
+      color: #d49e1e;             /* Warm golden icon */
+      border-color: #d49e1e;       /* Golden accent border */
     }
 
     /* Wrapper for smooth transition animation */
@@ -74,7 +76,7 @@
     /* Hidden state during fade-out animation */
     .quote-content.fade-out {
       opacity: 0;
-      transform: translateY(4px); /* Subtle downward slide */
+      transform: translateY(4px);
     }
 
     /* Quote body text */
@@ -99,6 +101,7 @@
 
   <div class="quote-card">
     <div class="card-header">
+      <!-- You can change this label to "QUOTE OF THE DAY" or keep "QUOTE SPOTLIGHT" -->
       <span class="title-text">💬 QUOTE SPOTLIGHT</span>
       <div class="button-group">
         <button class="arrow-btn" onclick="prevQuote()">&#10094;</button>
@@ -115,91 +118,75 @@
 
   <script>
     let quotesList = [];
-let historyStack = [];
-let historyIndex = -1;
+    let historyStack = [];
+    let historyIndex = -1;
 
-// Maximum number of quote IDs to keep in history memory
-const MAX_HISTORY = 50;
+    const MAX_HISTORY = 50;
 
-// Load local JSON file
-async function loadQuotes() {
-  try {
-    const response = await fetch('quotes.json');
-    quotesList = await response.json();
+    async function loadQuotes() {
+      try {
+        const response = await fetch('quotes.json');
+        quotesList = await response.json();
 
-    if (quotesList.length > 0) {
-      // Show initial random quote on load
-      nextQuote();
-    } else {
-      document.getElementById("quoteText").innerText = "No quotes found in quotes.json.";
-    }
-  } catch (error) {
-    console.error("Error loading quotes.json:", error);
-    document.getElementById("quoteText").innerText = "Error loading quotes.json file.";
-  }
-}
-
-// Smoothly updates quote on screen with a fade transition
-function renderQuoteWithAnimation(quoteIndex) {
-  const container = document.getElementById("quoteContent");
-
-  // 1. Fade out current content
-  container.classList.add("fade-out");
-
-  // 2. Wait 300ms for fade-out, then swap text and fade back in
-  setTimeout(() => {
-    const quote = quotesList[quoteIndex];
-    document.getElementById("quoteText").innerText = `"${quote.text}"`;
-    document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
-
-    // Remove fade-out class to trigger fade-in
-    container.classList.remove("fade-out");
-  }, 300);
-}
-
-// Handles clicking Next (>) or initial load
-function nextQuote() {
-  if (quotesList.length === 0) return;
-
-  // If we are currently stepping backward through history, move forward in existing history
-  if (historyIndex < historyStack.length - 1) {
-    historyIndex++;
-    renderQuoteWithAnimation(historyStack[historyIndex]);
-  } else {
-    // Generate a new random quote index
-    const randomIndex = Math.floor(Math.random() * quotesList.length);
-    historyStack.push(randomIndex);
-
-    // If history goes over our limit, drop the oldest item from the front
-    if (historyStack.length > MAX_HISTORY) {
-      historyStack.shift();
+        if (quotesList.length > 0) {
+          nextQuote();
+        } else {
+          document.getElementById("quoteText").innerText = "No quotes found in quotes.json.";
+        }
+      } catch (error) {
+        console.error("Error loading quotes.json:", error);
+        document.getElementById("quoteText").innerText = "Error loading quotes.json file.";
+      }
     }
 
-    // Set position pointer to the newest item at the end of history
-    historyIndex = historyStack.length - 1;
-    renderQuoteWithAnimation(randomIndex);
-  }
-}
+    function renderQuoteWithAnimation(quoteIndex) {
+      const container = document.getElementById("quoteContent");
 
-// Handles clicking Back (<)
-function prevQuote() {
-  if (quotesList.length === 0) return;
+      container.classList.add("fade-out");
 
-  // Step back 1 spot in history if available
-  if (historyIndex > 0) {
-    historyIndex--;
-    renderQuoteWithAnimation(historyStack[historyIndex]);
-  } else {
-    // If at the start of history, pick another random quote
-    const randomIndex = Math.floor(Math.random() * quotesList.length);
-    historyStack.unshift(randomIndex);
-    historyIndex = 0;
-    renderQuoteWithAnimation(randomIndex);
-  }
-}
+      setTimeout(() => {
+        const quote = quotesList[quoteIndex];
+        document.getElementById("quoteText").innerText = `"${quote.text}"`;
+        document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
 
-// Run as soon as page loads
-loadQuotes();
+        container.classList.remove("fade-out");
+      }, 300);
+    }
+
+    function nextQuote() {
+      if (quotesList.length === 0) return;
+
+      if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        renderQuoteWithAnimation(historyStack[historyIndex]);
+      } else {
+        const randomIndex = Math.floor(Math.random() * quotesList.length);
+        historyStack.push(randomIndex);
+
+        if (historyStack.length > MAX_HISTORY) {
+          historyStack.shift();
+        }
+
+        historyIndex = historyStack.length - 1;
+        renderQuoteWithAnimation(randomIndex);
+      }
+    }
+
+    function prevQuote() {
+      if (quotesList.length === 0) return;
+
+      if (historyIndex > 0) {
+        historyIndex--;
+        renderQuoteWithAnimation(historyStack[historyIndex]);
+      } else {
+        const randomIndex = Math.floor(Math.random() * quotesList.length);
+        historyStack.unshift(randomIndex);
+        historyIndex = 0;
+        renderQuoteWithAnimation(randomIndex);
+      }
+    }
+
+    loadQuotes();
   </script>
 
 </body>
