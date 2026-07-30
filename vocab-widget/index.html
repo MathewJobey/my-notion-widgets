@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vocabulary Spotlight & Dictionary</title>
+  <title>VocabStack - Word of the Day</title>
   <style>
-    /* Reset margins and set dark mode background */
+    /* Reset margins and set standard Notion dark background */
     body {
       margin: 0;
       padding: 0;
-      background-color: #191919;
+      background-color: #191919; /* Notion Dark Mode Background */
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
@@ -18,9 +18,9 @@
       min-height: 100vh;
     }
 
-    /* Main widget card styled like Notion */
+    /* Main card matching Quote Spotlight & Reading Goal cards */
     .vocab-card {
-      background-color: #222222;
+      background-color: #222222; /* Notion Card Background */
       border: 1px solid #333333;
       border-radius: 10px;
       padding: 20px;
@@ -29,16 +29,30 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    /* Top control bar containing search input and shuffle button */
+    /* Top card header row */
     .card-header {
       display: flex;
-      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    /* Header title in Emerald Green */
+    .title-text {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #10b981; /* Emerald Green Accent */
+      text-transform: uppercase;
+    }
+
+    /* Search row bar */
+    .search-row {
       margin-bottom: 16px;
     }
 
     .search-box {
       display: flex;
-      flex: 1;
       background-color: #2a2a2a;
       border: 1px solid #3d3d3d;
       border-radius: 6px;
@@ -59,7 +73,7 @@
       color: #777777;
     }
 
-    /* Action buttons */
+    /* Buttons styling */
     .icon-btn {
       background-color: #2a2a2a;
       border: 1px solid #3d3d3d;
@@ -69,9 +83,20 @@
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 13px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+    }
+
+    /* Circular refresh button matching quote arrow buttons */
+    .refresh-btn {
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-color: #444444;
+      font-size: 15px;
+      color: #ffffff;
     }
 
     .search-box .icon-btn {
@@ -80,13 +105,14 @@
       border-radius: 0;
     }
 
+    /* Emerald Green Hover State */
     .icon-btn:hover {
-      background-color: #382e18;
-      color: #d49e1e; /* Golden theme */
-      border-color: #d49e1e;
+      background-color: #064e3b; /* Dark emerald background fill */
+      color: #10b981;             /* Emerald green icon color */
+      border-color: #10b981;       /* Emerald border outline */
     }
 
-    /* Animation transition wrapper */
+    /* Content animation transition wrapper */
     .vocab-content {
       transition: opacity 0.3s ease, transform 0.3s ease;
       opacity: 1;
@@ -98,19 +124,19 @@
       transform: translateY(4px);
     }
 
-    /* Word header formatting */
+    /* Word title and metadata */
     .word-header {
       display: flex;
       align-items: baseline;
       gap: 10px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       flex-wrap: wrap;
     }
 
     .word-title {
       font-size: 22px;
       font-weight: 700;
-      color: #d49e1e; /* Matching your Notion golden header */
+      color: #10b981; /* Emerald Green Word Title */
       text-transform: capitalize;
     }
 
@@ -120,7 +146,19 @@
       font-style: italic;
     }
 
-    /* Definition and example sentence formatting */
+    /* Autocorrect notification tag */
+    .autocorrect-tag {
+      font-size: 11px;
+      color: #34d399;
+      background-color: #064e3b;
+      border: 1px solid #047857;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+
+    /* Definition & example sentence formatting */
     .word-definition {
       font-size: 14px;
       line-height: 1.5;
@@ -132,7 +170,7 @@
       font-size: 13px;
       font-style: italic;
       color: #a0a0a0;
-      border-left: 2px solid #d49e1e;
+      border-left: 2px solid #10b981; /* Emerald left accent border */
       padding-left: 10px;
       margin-top: 8px;
     }
@@ -141,125 +179,158 @@
 <body>
 
   <div class="vocab-card">
+    <!-- Card Header with Emerald Title & Circular Refresh Button -->
     <div class="card-header">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search any word..." onkeydown="handleKeyPress(event)">
-        <button class="icon-btn" onclick="searchCustomWord()" title="Search">🔍</button>
-      </div>
-      <button class="icon-btn" onclick="getRandomWordAndDefine()" title="Random Word">🎲</button>
+      <span class="title-text">📖 WORD OF THE DAY</span>
+      <button class="icon-btn refresh-btn" onclick="getRandomWordAndDefine()" title="New Word">&#8635;</button>
     </div>
 
+    <!-- Search Bar Row -->
+    <div class="search-row">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search or type a misspelled word..." onkeydown="handleKeyPress(event)">
+        <button class="icon-btn" onclick="searchCustomWord()" title="Search">🔍</button>
+      </div>
+    </div>
+
+    <!-- Animated Content Area -->
     <div id="vocabContent" class="vocab-content">
       <div class="word-header">
         <span class="word-title" id="wordTitle">Loading...</span>
         <span class="word-meta" id="wordMeta"></span>
       </div>
       
-      <div class="word-definition" id="wordDefinition">Fetching live dictionary data...</div>
+      <div id="autocorrectTag" class="autocorrect-tag" style="display: none;"></div>
+      <div class="word-definition" id="wordDefinition">Fetching dictionary data...</div>
       <div class="word-example" id="wordExample"></div>
     </div>
   </div>
 
   <script>
-    // Step 1: Fetch a random word from the Internet Random Word API
-    async function getRandomWordAndDefine() {
+    // Built-in high-value vocabulary list for "Word of the Day"
+    const SPOTLIGHT_WORDS = [
+      "belligerent", "ephemeral", "petrichor", "mellifluous", "serendipity", 
+      "sonorous", "luminescence", "solitude", "labyrinth", "eloquence", 
+      "incandescent", "ineffable", "halcyon", "surreal", "resplendent", 
+      "quixotic", "penumbra", "nebulous", "liminal", "evanescent", "ethereal"
+    ];
+
+    // Step 1: Search word with automatic Datamuse typo correction
+    async function fetchWithAutocorrect(query) {
       const container = document.getElementById("vocabContent");
       container.classList.add("fade-out");
 
-      try {
-        const randomRes = await fetch('https://random-word-api.herokuapp.com/word?number=1');
-        const randomData = await randomRes.json();
-        const randomWord = randomData[0];
+      const cleanQuery = query.trim().toLowerCase();
 
-        // Fetch dictionary definition for the generated word
-        fetchDictionaryData(randomWord, true);
+      try {
+        // Attempt 1: Fetch directly from Free Dictionary API
+        const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanQuery}`);
+        
+        if (dictRes.ok) {
+          const data = await dictRes.json();
+          renderDictionaryData(data[0], null);
+          return;
+        }
+
+        // Attempt 2: If 404 error, query Datamuse API for spelling suggestions
+        const datamuseRes = await fetch(`https://api.datamuse.com/sug?s=${cleanQuery}`);
+        const datamuseData = await datamuseRes.json();
+
+        if (datamuseData.length > 0) {
+          const suggestedWord = datamuseData[0].word;
+          
+          // Re-fetch definition using corrected word
+          const correctedDictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${suggestedWord}`);
+          
+          if (correctedDictRes.ok) {
+            const data = await correctedDictRes.json();
+            renderDictionaryData(data[0], cleanQuery);
+            return;
+          }
+        }
+
+        showErrorState(query);
+
       } catch (error) {
-        console.error("Error fetching random word:", error);
-        // Fallback to a guaranteed literary word if network fails
-        fetchDictionaryData("serendipity", false);
+        showErrorState(query);
       }
     }
 
-    // Step 2: Fetch detailed dictionary entry from Free Dictionary API
-    async function fetchDictionaryData(word, isRandomAttempt = false) {
+    // Step 2: Render word definition and metadata to screen
+    function renderDictionaryData(entry, originalTypo) {
       const container = document.getElementById("vocabContent");
-      if (!container.classList.contains("fade-out")) {
-        container.classList.add("fade-out");
-      }
 
-      try {
-        const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        
-        // If random word has no dictionary entry, try another random word
-        if (!dictRes.ok) {
-          if (isRandomAttempt) {
-            return getRandomWordAndDefine();
-          }
-          throw new Error("Word not found");
-        }
+      setTimeout(() => {
+        document.getElementById("wordTitle").innerText = entry.word;
 
-        const data = await dictRes.json();
-        const entry = data[0];
-
-        // Extract pronunciation and part of speech
         const phonetic = entry.phonetic || (entry.phonetics.find(p => p.text) || {}).text || "";
         const firstMeaning = entry.meanings[0];
         const partOfSpeech = firstMeaning ? firstMeaning.partOfSpeech : "";
-        
-        // Extract definition and example sentence
+
+        let metaString = "";
+        if (phonetic) metaString += `${phonetic} `;
+        if (partOfSpeech) metaString += `• ${partOfSpeech}`;
+        document.getElementById("wordMeta").innerText = metaString;
+
+        // Display emerald autocorrect tag if a typo was corrected
+        const tagEl = document.getElementById("autocorrectTag");
+        if (originalTypo) {
+          tagEl.innerText = `Auto-corrected from "${originalTypo}"`;
+          tagEl.style.display = "inline-block";
+        } else {
+          tagEl.style.display = "none";
+        }
+
         const definitionObj = firstMeaning.definitions[0];
-        const definitionText = definitionObj.definition;
-        const exampleText = definitionObj.example || "";
+        document.getElementById("wordDefinition").innerText = definitionObj.definition;
 
-        // Step 3: Render data on screen after fade-out completes
-        setTimeout(() => {
-          document.getElementById("wordTitle").innerText = entry.word;
-          
-          let metaString = "";
-          if (phonetic) metaString += `${phonetic} `;
-          if (partOfSpeech) metaString += `• ${partOfSpeech}`;
-          document.getElementById("wordMeta").innerText = metaString;
+        const exampleEl = document.getElementById("wordExample");
+        if (definitionObj.example) {
+          exampleEl.innerText = `"${definitionObj.example}"`;
+          exampleEl.style.display = "block";
+        } else {
+          exampleEl.style.display = "none";
+        }
 
-          document.getElementById("wordDefinition").innerText = definitionText;
-
-          const exampleEl = document.getElementById("wordExample");
-          if (exampleText) {
-            exampleEl.innerText = `"${exampleText}"`;
-            exampleEl.style.display = "block";
-          } else {
-            exampleEl.style.display = "none";
-          }
-
-          container.classList.remove("fade-out");
-        }, 300);
-
-      } catch (error) {
-        setTimeout(() => {
-          document.getElementById("wordTitle").innerText = word;
-          document.getElementById("wordMeta").innerText = "";
-          document.getElementById("wordDefinition").innerText = "Sorry, no dictionary definition was found for this word.";
-          document.getElementById("wordExample").style.display = "none";
-          container.classList.remove("fade-out");
-        }, 300);
-      }
+        container.classList.remove("fade-out");
+      }, 300);
     }
 
-    // Step 4: Handle user search button click
+    // Handle missing words
+    function showErrorState(word) {
+      const container = document.getElementById("vocabContent");
+      setTimeout(() => {
+        document.getElementById("wordTitle").innerText = word;
+        document.getElementById("wordMeta").innerText = "";
+        document.getElementById("autocorrectTag").style.display = "none";
+        document.getElementById("wordDefinition").innerText = "Sorry, no dictionary definition was found for this word.";
+        document.getElementById("wordExample").style.display = "none";
+        container.classList.remove("fade-out");
+      }, 300);
+    }
+
+    // Pick a random word from the spotlight list
+    function getRandomWordAndDefine() {
+      const randomIndex = Math.floor(Math.random() * SPOTLIGHT_WORDS.length);
+      fetchWithAutocorrect(SPOTLIGHT_WORDS[randomIndex]);
+    }
+
+    // Search button handler
     function searchCustomWord() {
-      const query = document.getElementById("searchInput").value.trim();
-      if (query !== "") {
-        fetchDictionaryData(query, false);
+      const query = document.getElementById("searchInput").value;
+      if (query.trim() !== "") {
+        fetchWithAutocorrect(query);
       }
     }
 
-    // Allow pressing Enter in search box
+    // Keyboard Enter handler
     function handleKeyPress(event) {
       if (event.key === "Enter") {
         searchCustomWord();
       }
     }
 
-    // Load initial random word when page opens
+    // Load initial word on page load
     getRandomWordAndDefine();
   </script>
 
