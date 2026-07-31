@@ -16,8 +16,9 @@ POS_MAP = {
 
 def generate_monthly_words():
     print("Downloading Open English Wordnet data...")
-    wn.download("oewn:2025+")
-    oewn = wn.Wordnet("oewn:2025+")
+    # Automatically grabs the latest version available
+    wn.download("oewn")
+    oewn = wn.Wordnet("oewn")
 
     extracted_words = []
     seen_words = set()
