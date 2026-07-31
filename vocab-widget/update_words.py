@@ -23,19 +23,19 @@ def generate_monthly_words():
     extracted_words = []
     seen_words = set()
 
-    print("Extracting valid words with definitions and examples...")
+    print("Extracting valid words with definitions...")
 
     # Step 1: Loop through all synsets (meaning groups)
     for synset in oewn.synsets():
         definition = synset.definition()
         examples = synset.examples()
 
-        # Step 2: Require both a definition and at least 1 example sentence
-        if definition and len(examples) > 0:
+        # Step 2: Only require a valid definition string
+        if definition:
             for sense in synset.senses():
                 word_text = sense.word().lemma().lower()
 
-                # Step 3: Filter for clean single words longer than 3 letters
+                # Step 3: Require clean single words longer than 3 letters
                 if "_" not in word_text and " " not in word_text and len(word_text) > 3:
                     if word_text not in seen_words:
                         seen_words.add(word_text)
@@ -44,23 +44,25 @@ def generate_monthly_words():
                         raw_pos = synset.pos
                         friendly_pos = POS_MAP.get(raw_pos, raw_pos)
 
+                        # Step 4: Safely grab example if available, else empty string
+                        example_text = examples[0] if len(examples) > 0 else ""
+
                         extracted_words.append({
                             "word": word_text,
                             "partOfSpeech": friendly_pos,
-                            "phonetic": "",
                             "definition": definition,
-                            "example": examples[0]
+                            "example": example_text
                         })
 
     print(f"Total valid candidate words found: {len(extracted_words)}")
 
-    # Step 4: Shuffle the entire candidate list for randomness
+    # Step 5: Shuffle the candidate list for complete randomness
     random.shuffle(extracted_words)
 
-    # Step 5: Crop down to our monthly batch size
+    # Step 6: Crop down to our monthly batch size
     monthly_batch = extracted_words[:BATCH_SIZE]
 
-    # Step 6: Overwrite words.json with the new batch
+    # Step 7: Overwrite words.json with the new batch
     with open("words.json", "w", encoding="utf-8") as f:
         json.dump(monthly_batch, f, indent=2)
 

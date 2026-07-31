@@ -5,334 +5,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VocabStack - Word of the Day</title>
   <style>
-    /* Reset margins and set standard Notion dark background */
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #191919; /* Notion Dark Mode Background */
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+  /* Reset margins and set standard Notion dark background */
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #191919; /* Notion Dark Mode Background */
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
 
-    /* Main card matching Quote Spotlight & Reading Goal cards */
-    .vocab-card {
-      background-color: #222222; /* Notion Card Background */
-      border: 1px solid #333333;
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 480px;
-      width: 90%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
+  /* Main card matching Notion dashboard aesthetics */
+  .vocab-card {
+    background-color: #222222; /* Notion Card Background */
+    border: 1px solid #333333;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
 
-    /* Top card header row */
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+  /* Top card header row */
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
 
-    /* Header title in Emerald Green */
-    .title-text {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: #10b981; /* Emerald Green Accent */
-      text-transform: uppercase;
-    }
+  /* Header title in Emerald Green */
+  .title-text {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #10b981; /* Emerald Green Accent */
+    text-transform: uppercase;
+  }
 
-    /* Search row bar */
-    .search-row {
-      margin-bottom: 16px;
-    }
+  /* Circular refresh button */
+  .refresh-btn {
+    background-color: #2a2a2a;
+    border: 1px solid #444444;
+    color: #ffffff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .search-box {
-      display: flex;
-      background-color: #2a2a2a;
-      border: 1px solid #3d3d3d;
-      border-radius: 6px;
-      overflow: hidden;
-    }
+  /* Emerald Green Hover State */
+  .refresh-btn:hover {
+    background-color: #064e3b; /* Dark emerald background fill */
+    color: #10b981;             /* Emerald green icon color */
+    border-color: #10b981;       /* Emerald border outline */
+  }
 
-    .search-box input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      padding: 8px 12px;
-      color: #ffffff;
-      font-size: 13px;
-      outline: none;
-    }
+  /* Content animation transition wrapper */
+  .vocab-content {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-    .search-box input::placeholder {
-      color: #777777;
-    }
+  .vocab-content.fade-out {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 
-    /* Buttons styling */
-    .icon-btn {
-      background-color: #2a2a2a;
-      border: 1px solid #3d3d3d;
-      color: #bbbbbb;
-      border-radius: 6px;
-      padding: 6px 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 13px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
+  /* Word title and metadata */
+  .word-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
 
-    /* Circular refresh button matching quote arrow buttons */
-    .refresh-btn {
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      padding: 0;
-      border-color: #444444;
-      font-size: 15px;
-      color: #ffffff;
-    }
+  .word-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #10b981; /* Emerald Green Word Title */
+    text-transform: capitalize;
+  }
 
-    .search-box .icon-btn {
-      border: none;
-      border-left: 1px solid #3d3d3d;
-      border-radius: 0;
-    }
+  .word-meta {
+    font-size: 12px;
+    color: #888888;
+    font-style: italic;
+  }
 
-    /* Emerald Green Hover State */
-    .icon-btn:hover {
-      background-color: #064e3b; /* Dark emerald background fill */
-      color: #10b981;             /* Emerald green icon color */
-      border-color: #10b981;       /* Emerald border outline */
-    }
+  /* Definition & example sentence formatting */
+  .word-definition {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #dddddd;
+    margin-bottom: 10px;
+  }
 
-    /* Content animation transition wrapper */
-    .vocab-content {
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .vocab-content.fade-out {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-
-    /* Word title and metadata */
-    .word-header {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-    }
-
-    .word-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #10b981; /* Emerald Green Word Title */
-      text-transform: capitalize;
-    }
-
-    .word-meta {
-      font-size: 12px;
-      color: #888888;
-      font-style: italic;
-    }
-
-    /* Autocorrect notification tag */
-    .autocorrect-tag {
-      font-size: 11px;
-      color: #34d399;
-      background-color: #064e3b;
-      border: 1px solid #047857;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      display: inline-block;
-    }
-
-    /* Definition & example sentence formatting */
-    .word-definition {
-      font-size: 14px;
-      line-height: 1.5;
-      color: #dddddd;
-      margin-bottom: 10px;
-    }
-
-    .word-example {
-      font-size: 13px;
-      font-style: italic;
-      color: #a0a0a0;
-      border-left: 2px solid #10b981; /* Emerald left accent border */
-      padding-left: 10px;
-      margin-top: 8px;
-    }
-  </style>
+  .word-example {
+    font-size: 13px;
+    font-style: italic;
+    color: #a0a0a0;
+    border-left: 2px solid #10b981; /* Emerald left accent border */
+    padding-left: 10px;
+    margin-top: 8px;
+  }
+</style>
 </head>
 <body>
-
-  <div class="vocab-card">
-    <!-- Card Header with Emerald Title & Circular Refresh Button -->
-    <div class="card-header">
-      <span class="title-text">📖 WORD OF THE DAY</span>
-      <button class="icon-btn refresh-btn" onclick="getRandomWordAndDefine()" title="New Word">&#8635;</button>
-    </div>
-
-    <!-- Search Bar Row -->
-    <div class="search-row">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search or type a misspelled word..." onkeydown="handleKeyPress(event)">
-        <button class="icon-btn" onclick="searchCustomWord()" title="Search">🔍</button>
-      </div>
-    </div>
-
-    <!-- Animated Content Area -->
-    <div id="vocabContent" class="vocab-content">
-      <div class="word-header">
-        <span class="word-title" id="wordTitle">Loading...</span>
-        <span class="word-meta" id="wordMeta"></span>
-      </div>
-      
-      <div id="autocorrectTag" class="autocorrect-tag" style="display: none;"></div>
-      <div class="word-definition" id="wordDefinition">Fetching dictionary data...</div>
-      <div class="word-example" id="wordExample"></div>
-    </div>
+<div class="vocab-card">
+  <!-- Card Header with Title & Refresh Button -->
+  <div class="card-header">
+    <span class="title-text">📖 WORD OF THE DAY</span>
+    <button class="refresh-btn" onclick="displayRandomWord()" title="New Word">&#8635;</button>
   </div>
 
+  <!-- Animated Content Area -->
+  <div id="vocabContent" class="vocab-content">
+    <div class="word-header">
+      <span class="word-title" id="wordTitle">Loading...</span>
+      <span class="word-meta" id="wordMeta"></span>
+    </div>
+    
+    <div class="word-definition" id="wordDefinition">Loading vocabulary database...</div>
+    <div class="word-example" id="wordExample" style="display: none;"></div>
+  </div>
+</div>
   <script>
-    // Built-in high-value vocabulary list for "Word of the Day"
-    const SPOTLIGHT_WORDS = [
-      "belligerent", "ephemeral", "petrichor", "mellifluous", "serendipity", 
-      "sonorous", "luminescence", "solitude", "labyrinth", "eloquence", 
-      "incandescent", "ineffable", "halcyon", "surreal", "resplendent", 
-      "quixotic", "penumbra", "nebulous", "liminal", "evanescent", "ethereal"
-    ];
+  // Global array to store words loaded from words.json
+  let vocabularyList = [];
 
-    // Step 1: Search word with automatic Datamuse typo correction
-    async function fetchWithAutocorrect(query) {
-      const container = document.getElementById("vocabContent");
-      container.classList.add("fade-out");
-
-      const cleanQuery = query.trim().toLowerCase();
-
-      try {
-        // Attempt 1: Fetch directly from Free Dictionary API
-        const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanQuery}`);
-        
-        if (dictRes.ok) {
-          const data = await dictRes.json();
-          renderDictionaryData(data[0], null);
-          return;
-        }
-
-        // Attempt 2: If 404 error, query Datamuse API for spelling suggestions
-        const datamuseRes = await fetch(`https://api.datamuse.com/sug?s=${cleanQuery}`);
-        const datamuseData = await datamuseRes.json();
-
-        if (datamuseData.length > 0) {
-          const suggestedWord = datamuseData[0].word;
-          
-          // Re-fetch definition using corrected word
-          const correctedDictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${suggestedWord}`);
-          
-          if (correctedDictRes.ok) {
-            const data = await correctedDictRes.json();
-            renderDictionaryData(data[0], cleanQuery);
-            return;
-          }
-        }
-
-        showErrorState(query);
-
-      } catch (error) {
-        showErrorState(query);
+  // Step 1: Fetch words.json file when widget loads
+  async function loadVocabularyData() {
+    try {
+      const response = await fetch("words.json");
+      
+      if (!response.ok) {
+        throw new Error("Could not load words.json");
       }
-    }
 
-    // Step 2: Render word definition and metadata to screen
-    function renderDictionaryData(entry, originalTypo) {
-      const container = document.getElementById("vocabContent");
+      vocabularyList = await response.json();
 
-      setTimeout(() => {
-        document.getElementById("wordTitle").innerText = entry.word;
-
-        const phonetic = entry.phonetic || (entry.phonetics.find(p => p.text) || {}).text || "";
-        const firstMeaning = entry.meanings[0];
-        const partOfSpeech = firstMeaning ? firstMeaning.partOfSpeech : "";
-
-        let metaString = "";
-        if (phonetic) metaString += `${phonetic} `;
-        if (partOfSpeech) metaString += `• ${partOfSpeech}`;
-        document.getElementById("wordMeta").innerText = metaString;
-
-        // Display emerald autocorrect tag if a typo was corrected
-        const tagEl = document.getElementById("autocorrectTag");
-        if (originalTypo) {
-          tagEl.innerText = `Auto-corrected from "${originalTypo}"`;
-          tagEl.style.display = "inline-block";
-        } else {
-          tagEl.style.display = "none";
-        }
-
-        const definitionObj = firstMeaning.definitions[0];
-        document.getElementById("wordDefinition").innerText = definitionObj.definition;
-
-        const exampleEl = document.getElementById("wordExample");
-        if (definitionObj.example) {
-          exampleEl.innerText = `"${definitionObj.example}"`;
-          exampleEl.style.display = "block";
-        } else {
-          exampleEl.style.display = "none";
-        }
-
-        container.classList.remove("fade-out");
-      }, 300);
-    }
-
-    // Handle missing words
-    function showErrorState(word) {
-      const container = document.getElementById("vocabContent");
-      setTimeout(() => {
-        document.getElementById("wordTitle").innerText = word;
-        document.getElementById("wordMeta").innerText = "";
-        document.getElementById("autocorrectTag").style.display = "none";
-        document.getElementById("wordDefinition").innerText = "Sorry, no dictionary definition was found for this word.";
-        document.getElementById("wordExample").style.display = "none";
-        container.classList.remove("fade-out");
-      }, 300);
-    }
-
-    // Pick a random word from the spotlight list
-    function getRandomWordAndDefine() {
-      const randomIndex = Math.floor(Math.random() * SPOTLIGHT_WORDS.length);
-      fetchWithAutocorrect(SPOTLIGHT_WORDS[randomIndex]);
-    }
-
-    // Search button handler
-    function searchCustomWord() {
-      const query = document.getElementById("searchInput").value;
-      if (query.trim() !== "") {
-        fetchWithAutocorrect(query);
+      if (vocabularyList.length > 0) {
+        displayRandomWord();
+      } else {
+        showErrorState("No words found in dataset.");
       }
+    } catch (error) {
+      console.error("Error loading words:", error);
+      showErrorState("Unable to load words.json dataset.");
     }
+  }
 
-    // Keyboard Enter handler
-    function handleKeyPress(event) {
-      if (event.key === "Enter") {
-        searchCustomWord();
+  // Step 2: Select a random word from the loaded list and display it
+  function displayRandomWord() {
+    if (vocabularyList.length === 0) return;
+
+    const container = document.getElementById("vocabContent");
+    
+    // Add fade-out animation class
+    container.classList.add("fade-out");
+
+    // Pick a random word from memory
+    const randomIndex = Math.floor(Math.random() * vocabularyList.length);
+    const selectedItem = vocabularyList[randomIndex];
+
+    // Wait 300ms for fade-out to complete before updating text
+    setTimeout(() => {
+      // Update Title and Part of Speech
+      document.getElementById("wordTitle").innerText = selectedItem.word;
+      document.getElementById("wordMeta").innerText = selectedItem.partOfSpeech || "";
+
+      // Update Definition
+      document.getElementById("wordDefinition").innerText = selectedItem.definition;
+
+      // Update Example sentence (hide if empty)
+      const exampleEl = document.getElementById("wordExample");
+      if (selectedItem.example && selectedItem.example.trim() !== "") {
+        exampleEl.innerText = `"${selectedItem.example}"`;
+        exampleEl.style.display = "block";
+      } else {
+        exampleEl.style.display = "none";
       }
-    }
 
-    // Load initial word on page load
-    getRandomWordAndDefine();
-  </script>
+      // Remove fade-out class to trigger fade-in animation
+      container.classList.remove("fade-out");
+    }, 300);
+  }
+
+  // Fallback function if words.json fails to load
+  function showErrorState(message) {
+    document.getElementById("wordTitle").innerText = "Notice";
+    document.getElementById("wordMeta").innerText = "";
+    document.getElementById("wordDefinition").innerText = message;
+    document.getElementById("wordExample").style.display = "none";
+  }
+
+  // Initialize: Load words when page opens
+  loadVocabularyData();
+</script>
 
 </body>
 </html>
