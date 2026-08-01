@@ -1,0 +1,146 @@
+<style>
+  /* Base dark background matching Notion dark mode */
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #191919;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* Main card container */
+  .clock-card {
+    background-color: #222222;
+    border: 1px solid #333333;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Card Header with Title and Greeting */
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .title-text {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #2E7CD1; /* Dark Blue Accent */
+    text-transform: uppercase;
+  }
+
+  .greeting-text {
+    font-size: 11px;
+    color: #888888;
+    font-style: italic;
+  }
+
+  /* Main Interactive Time Display */
+  .time-display {
+    font-size: 38px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    cursor: pointer; /* Shows user can click to toggle 12h/24h */
+    user-select: none;
+    display: inline-block;
+  }
+
+  /* AM / PM Accent */
+  .time-ampm {
+    font-size: 22px;
+    color: #2E7CD1; /* Dark Blue Accent */
+    font-weight: 600;
+    margin-left: 4px;
+  }
+
+  /* Full Date Display */
+  .date-display {
+    font-size: 13px;
+    color: #aaaaaa;
+  }
+</style>
+<div class="clock-card">
+  <!-- Card Header -->
+  <div class="card-header">
+    <span class="title-text">🕒 LOCAL TIME</span>
+    <span class="greeting-text" id="greetingText">Good day</span>
+  </div>
+
+  <!-- Clickable Time Display (Click to toggle 12h / 24h) -->
+  <div class="time-display" onclick="toggleTimeFormat()" title="Click to toggle 12h / 24h format">
+    <span id="timeText">00:00</span>
+    <span class="time-ampm" id="ampmText">AM</span>
+  </div>
+
+  <!-- Full Date Display -->
+  <div class="date-display" id="dateText">Loading date...</div>
+</div>
+<script>
+  let is24HourFormat = false;
+
+  // Function to update time, date, and greeting
+  function updateClock() {
+    const now = new Date();
+
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    let ampm = '';
+
+    // Switch between 12-hour and 24-hour display
+    if (!is24HourFormat) {
+      ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // Convert hour '0' to '12'
+      document.getElementById('ampmText').style.display = 'inline';
+      document.getElementById('ampmText').innerText = ampm;
+    } else {
+      document.getElementById('ampmText').style.display = 'none';
+    }
+
+    const formattedHours = String(hours).padStart(2, '0');
+    document.getElementById('timeText').innerText = `${formattedHours}:${minutes}`;
+
+    // Format Date (e.g., Saturday, August 1, 2026)
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('dateText').innerText = now.toLocaleDateString(undefined, options);
+
+    // Update dynamic greeting based on hour of day
+    updateGreeting(now.getHours());
+  }
+
+  // Set greeting based on hour
+  function updateGreeting(currentHour) {
+    const greetingEl = document.getElementById('greetingText');
+    if (currentHour >= 5 && currentHour < 12) {
+      greetingEl.innerText = '✨ Good morning';
+    } else if (currentHour >= 12 && currentHour < 17) {
+      greetingEl.innerText = '☀️ Good afternoon';
+    } else if (currentHour >= 17 && currentHour < 22) {
+      greetingEl.innerText = '🌙 Good evening';
+    } else {
+      greetingEl.innerText = '🦉 Night owl mode';
+    }
+  }
+
+  // Click handler to toggle 12h / 24h format
+  function toggleTimeFormat() {
+    is24HourFormat = !is24HourFormat;
+    updateClock();
+  }
+
+  // Initialize clock and refresh every 10 seconds
+  updateClock();
+  setInterval(updateClock, 10000);
+</script>
