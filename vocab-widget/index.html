@@ -5,27 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VocabStack - Word of the Day</title>
   <style>
-  /* Reset margins and set standard Notion dark background */
-  body {
+  /* Step 1: Universal box-sizing reset (Fixes right-side clipping) */
+  * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
+  }
+
+  /* Step 2: Full screen dark background fitting Notion frame */
+  body {
     background-color: #191919; /* Notion Dark Mode Background */
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Removes scrollbars */
+    padding: 8px; /* Outer cushion inside Notion embed frame */
   }
 
-  /* Main card matching Notion dashboard aesthetics */
+  /* Step 3: Main card matching Notion dashboard aesthetics */
   .vocab-card {
     background-color: #222222; /* Notion Card Background */
     border: 1px solid #333333;
     border-radius: 10px;
-    padding: 20px;
-    max-width: 480px;
-    width: 90%;
+    padding: 16px 18px; /* Compact padding */
+    width: 100%; /* Fills Notion column perfectly */
+    max-width: 100%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
@@ -34,7 +42,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   /* Header title in Emerald Green */
@@ -87,7 +95,7 @@
     display: flex;
     align-items: baseline;
     gap: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     flex-wrap: wrap;
   }
 
@@ -109,7 +117,7 @@
     font-size: 14px;
     line-height: 1.5;
     color: #dddddd;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .word-example {
@@ -118,9 +126,10 @@
     color: #a0a0a0;
     border-left: 2px solid #10b981; /* Emerald left accent border */
     padding-left: 10px;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 </style>
+
 </head>
 <body>
 <div class="vocab-card">
