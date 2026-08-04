@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VocabStack - Word of the Day</title>
   <style>
-  /* Step 1: Universal box-sizing reset (Fixes right-side clipping) */
+  /* Reset box sizes for consistent layout */
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
 
-  /* Step 2: Full screen dark background fitting Notion frame */
+  /* Full screen dark background fitting Notion frame */
   body {
-    background-color: #191919; /* Notion Dark Mode Background */
+    background-color: #191919;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex;
@@ -22,22 +22,22 @@
     align-items: center;
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* Removes scrollbars */
-    padding: 8px; /* Outer cushion inside Notion embed frame */
+    overflow: hidden;
+    padding: 8px;
   }
 
-  /* Step 3: Main card matching Notion dashboard aesthetics */
+  /* Main widget card */
   .vocab-card {
-    background-color: #222222; /* Notion Card Background */
+    background-color: #222222;
     border: 1px solid #333333;
     border-radius: 10px;
-    padding: 16px 18px; /* Compact padding */
-    width: 100%; /* Fills Notion column perfectly */
+    padding: 16px 18px;
+    width: 100%;
     max-width: 100%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* Top card header row */
+  /* Header row with widget title & refresh icon */
   .card-header {
     display: flex;
     justify-content: space-between;
@@ -45,12 +45,12 @@
     margin-bottom: 12px;
   }
 
-  /* Header title in Emerald Green */
+  /* Widget header text */
   .title-text {
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: #10b981; /* Emerald Green Accent */
+    color: #10b981;
     text-transform: uppercase;
   }
 
@@ -71,14 +71,13 @@
     justify-content: center;
   }
 
-  /* Emerald Green Hover State */
   .refresh-btn:hover {
-    background-color: #064e3b; /* Dark emerald background fill */
-    color: #10b981;             /* Emerald green icon color */
-    border-color: #10b981;       /* Emerald border outline */
+    background-color: #064e3b;
+    color: #10b981;
+    border-color: #10b981;
   }
 
-  /* Content animation transition wrapper */
+  /* Animated container for word transitions */
   .vocab-content {
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 1;
@@ -90,11 +89,11 @@
     transform: translateY(4px);
   }
 
-  /* Word title and metadata */
+  /* Title row containing word, pronunciation, and part of speech */
   .word-header {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 6px;
     flex-wrap: wrap;
   }
@@ -102,17 +101,25 @@
   .word-title {
     font-size: 22px;
     font-weight: 700;
-    color: #10b981; /* Emerald Green Word Title */
+    color: #10b981;
     text-transform: capitalize;
   }
 
+  /* Phonetic pronunciation badge */
+  .word-pronunciation {
+    font-size: 13px;
+    color: #a0a0a0;
+    font-family: monospace, serif;
+  }
+
+  /* Grammatical tag (noun, verb, etc.) */
   .word-meta {
     font-size: 12px;
     color: #888888;
     font-style: italic;
   }
 
-  /* Definition & example sentence formatting */
+  /* Definition text */
   .word-definition {
     font-size: 14px;
     line-height: 1.5;
@@ -120,16 +127,17 @@
     margin-bottom: 8px;
   }
 
+  /* Primary example sentence */
   .word-example {
     font-size: 13px;
     font-style: italic;
     color: #a0a0a0;
-    border-left: 2px solid #10b981; /* Emerald left accent border */
+    border-left: 2px solid #10b981;
     padding-left: 10px;
     margin-top: 6px;
   }
 
-  /* Footer attribution styling */
+  /* Source link footer */
   .card-footer {
     margin-top: 12px;
     padding-top: 8px;
@@ -146,7 +154,7 @@
   }
 
   .card-footer a:hover {
-    color: #10b981; /* Emerald green highlight on hover */
+    color: #10b981;
     text-decoration: underline;
   }
 </style>
@@ -154,16 +162,17 @@
 </head>
 <body>
 <div class="vocab-card">
-  <!-- Card Header with Title & Refresh Button -->
+  <!-- Top Header Bar -->
   <div class="card-header">
     <span class="title-text">📖 WORD OF THE DAY</span>
     <button class="refresh-btn" onclick="displayRandomWord()" title="New Word">&#8635;</button>
   </div>
 
-  <!-- Animated Content Area -->
+  <!-- Word Display Area -->
   <div id="vocabContent" class="vocab-content">
     <div class="word-header">
       <span class="word-title" id="wordTitle">Loading...</span>
+      <span class="word-pronunciation" id="wordPronunciation"></span>
       <span class="word-meta" id="wordMeta"></span>
     </div>
     
@@ -171,24 +180,20 @@
     <div class="word-example" id="wordExample" style="display: none;"></div>
   </div>
 
-  <!-- Source Credit Footer -->
+  <!-- Source Footer Link -->
   <div class="card-footer">
     <span>Source: <a href="https://www.merriam-webster.com/" target="_blank" rel="noopener">Merriam-Webster</a></span>
   </div>
 </div>
 
   <script>
-  // Global array to store words loaded from words.json
   let vocabularyList = [];
 
-  // Step 1: Fetch words.json file when widget loads
+  // Step 1: Load words from JSON dataset
   async function loadVocabularyData() {
     try {
       const response = await fetch("words.json");
-      
-      if (!response.ok) {
-        throw new Error("Could not load words.json");
-      }
+      if (!response.ok) throw new Error("Could not load words.json");
 
       vocabularyList = await response.json();
 
@@ -203,29 +208,36 @@
     }
   }
 
-  // Step 2: Select a random word from the loaded list and display it
+  // Step 2: Display a random word on screen
   function displayRandomWord() {
     if (vocabularyList.length === 0) return;
 
     const container = document.getElementById("vocabContent");
-    
-    // Add fade-out animation class
     container.classList.add("fade-out");
 
-    // Pick a random word from memory
     const randomIndex = Math.floor(Math.random() * vocabularyList.length);
     const selectedItem = vocabularyList[randomIndex];
 
-    // Wait 300ms for fade-out to complete before updating text
     setTimeout(() => {
-      // Update Title and Part of Speech
+      // 1. Update Word Title
       document.getElementById("wordTitle").innerText = selectedItem.word;
-      document.getElementById("wordMeta").innerText = selectedItem.partOfSpeech || "";
 
-      // Update Definition
+      // 2. Update Pronunciation
+      const pronEl = document.getElementById("wordPronunciation");
+      if (selectedItem.pronunciation) {
+        pronEl.innerText = selectedItem.pronunciation;
+        pronEl.style.display = "inline";
+      } else {
+        pronEl.style.display = "none";
+      }
+
+      // 3. Update Part of Speech
+      document.getElementById("wordMeta").innerText = selectedItem.partOfSpeech ? `• ${selectedItem.partOfSpeech}` : "";
+
+      // 4. Update Definition
       document.getElementById("wordDefinition").innerText = selectedItem.definition;
 
-      // Update Example sentence (hide if empty)
+      // 5. Update Example Sentence
       const exampleEl = document.getElementById("wordExample");
       if (selectedItem.example && selectedItem.example.trim() !== "") {
         exampleEl.innerText = `"${selectedItem.example}"`;
@@ -234,20 +246,18 @@
         exampleEl.style.display = "none";
       }
 
-      // Remove fade-out class to trigger fade-in animation
       container.classList.remove("fade-out");
     }, 300);
   }
 
-  // Fallback function if words.json fails to load
   function showErrorState(message) {
     document.getElementById("wordTitle").innerText = "Notice";
+    document.getElementById("wordPronunciation").style.display = "none";
     document.getElementById("wordMeta").innerText = "";
     document.getElementById("wordDefinition").innerText = message;
     document.getElementById("wordExample").style.display = "none";
   }
 
-  // Initialize: Load words when page opens
   loadVocabularyData();
 </script>
 
