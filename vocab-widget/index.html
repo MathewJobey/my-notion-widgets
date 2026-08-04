@@ -189,7 +189,16 @@
   <script>
   let vocabularyList = [];
 
-  // Step 1: Load words from JSON dataset
+  // Helper 1: Get local today date as YYYY-MM-DD
+  function getTodayISOString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Step 1: Fetch words.json dataset
   async function loadVocabularyData() {
     try {
       const response = await fetch("words.json");
@@ -198,7 +207,7 @@
       vocabularyList = await response.json();
 
       if (vocabularyList.length > 0) {
-        displayRandomWord();
+        displayTodayWord(); // Initial load shows today's word!
       } else {
         showErrorState("No words found in dataset.");
       }
@@ -208,15 +217,37 @@
     }
   }
 
-  // Step 2: Display a random word on screen
+  // Step 2: Find and display today's word
+  function displayTodayWord() {
+    if (vocabularyList.length === 0) return;
+
+    const todayStr = getTodayISOString();
+
+    // Look for a word matching today's date in words.json
+    let todayWord = vocabularyList.find(item => item.date === todayStr);
+
+    // Fallback: If today's word isn't added yet, show the most recent word (index 0)
+    if (!todayWord) {
+      todayWord = vocabularyList[0];
+    }
+
+    renderWordCard(todayWord);
+  }
+
+  // Step 3: Display a random word when refresh button is clicked
   function displayRandomWord() {
     if (vocabularyList.length === 0) return;
 
-    const container = document.getElementById("vocabContent");
-    container.classList.add("fade-out");
-
     const randomIndex = Math.floor(Math.random() * vocabularyList.length);
     const selectedItem = vocabularyList[randomIndex];
+
+    renderWordCard(selectedItem);
+  }
+
+  // Shared Helper: Render word object with fade-out animation
+  function renderWordCard(selectedItem) {
+    const container = document.getElementById("vocabContent");
+    container.classList.add("fade-out");
 
     setTimeout(() => {
       // 1. Update Word Title

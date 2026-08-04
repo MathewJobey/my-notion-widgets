@@ -18,7 +18,7 @@ def clean_html_tags(raw_html):
 
 
 def parse_entry_details(raw_desc, pub_date_str):
-    """Extracts date, pronunciation, definition, and primary example."""
+    """Extracts date, pronunciation, definition, and a single clean example sentence."""
     text = clean_html_tags(raw_desc)
 
     # 1. Convert RSS publication date to ISO 8601 format (YYYY-MM-DD)
@@ -44,14 +44,15 @@ def parse_entry_details(raw_desc, pub_date_str):
     if "Examples:" in text:
         text = re.split(r"Examples:", text, flags=re.IGNORECASE, maxsplit=1)[0].strip()
 
-    # 5. Separate Definition and Primary Example using '//'
+    # 5. Split text by '//' to cleanly separate definition and individual examples
+    parts = [p.strip() for p in text.split("//") if p.strip()]
+
     definition = ""
     example = ""
 
-    if "//" in text:
-        def_part, ex_part = text.split("//", 1)
-
-        # Clean definition lines (remove header/pronunciation lines)
+    if len(parts) > 0:
+        # The first part is always the definition
+        def_part = parts[0]
         def_lines = [
             line.strip()
             for line in def_part.split("\n")
@@ -59,19 +60,11 @@ def parse_entry_details(raw_desc, pub_date_str):
         ]
         definition = " ".join(def_lines)
 
-        # Clean primary example sentence
-        example = " ".join(
-            [line.strip() for line in ex_part.split("\n") if line.strip()]
-        )
-    else:
-        # Fallback if '//' separator is missing
-        lines = [
-            line.strip()
-            for line in text.split("\n")
-            if line.strip() and "Word of the Day" not in line and "•" not in line
-        ]
-        definition = lines[0] if lines else "Definition available online."
-        example = " ".join(lines[1:]) if len(lines) > 1 else ""
+    if len(parts) > 1:
+        # The second part is the first clean example sentence
+        ex_part = parts[1]
+        ex_lines = [line.strip() for line in ex_part.split("\n") if line.strip()]
+        example = " ".join(ex_lines)
 
     return iso_date, pronunciation, definition, example
 
@@ -81,7 +74,7 @@ def accumulate_words():
     existing_word_names = set()
 
     try:
-        with open("words.json", "r", encoding="utf-8") as f:
+        with open("vocab-widget\words.json", "r", encoding="utf-8") as f:
             existing_words = json.load(f)
             existing_word_names = {
                 item["word"].lower() for item in existing_words if "word" in item
@@ -144,8 +137,8 @@ def accumulate_words():
         existing_word_names.add(word)
         new_words_added += 1
 
-    # Save to words.json without ascii escaping
-    with open("words.json", "w", encoding="utf-8") as f:
+    # Save to words.json with unicode characters intact
+    with open("vocab-widget\words.json", "w", encoding="utf-8") as f:
         json.dump(existing_words, f, indent=2, ensure_ascii=False)
 
     print(f"Done! Added {new_words_added} new words. Total dataset size: {len(existing_words)} words.")
