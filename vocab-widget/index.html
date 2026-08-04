@@ -128,6 +128,27 @@
     padding-left: 10px;
     margin-top: 6px;
   }
+
+  /* Footer attribution styling */
+  .card-footer {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #2e2e2e;
+    font-size: 10px;
+    color: #666666;
+    text-align: right;
+  }
+
+  .card-footer a {
+    color: #888888;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .card-footer a:hover {
+    color: #10b981; /* Emerald green highlight on hover */
+    text-decoration: underline;
+  }
 </style>
 
 </head>
@@ -149,7 +170,13 @@
     <div class="word-definition" id="wordDefinition">Loading vocabulary database...</div>
     <div class="word-example" id="wordExample" style="display: none;"></div>
   </div>
+
+  <!-- Source Credit Footer -->
+  <div class="card-footer">
+    <span>Source: <a href="https://www.merriam-webster.com/" target="_blank" rel="noopener">Merriam-Webster</a></span>
+  </div>
 </div>
+
   <script>
   // Global array to store words loaded from words.json
   let vocabularyList = [];
