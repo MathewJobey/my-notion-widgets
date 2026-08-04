@@ -6,10 +6,11 @@ import re
 import time
 import urllib.request
 
-# Target date range for testing: August 4, 2026 down to July 15, 2026
-START_DATE = datetime.date(2006, 8,31)
-END_DATE = datetime.date(2006, 9, 30)
+# Target Date Range: August 12, 2021 up to Today (August 4, 2026)
+START_DATE = datetime.date(2026, 7, 12)
+END_DATE = datetime.date(2026, 8, 4)
 
+# Browser headers to prevent 403 Forbidden blocking
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -67,7 +68,6 @@ def parse_webpage_entry(html_content, date_str):
     if pron_match:
         pronunciation = f"\\{pron_match.group(1).strip()}\\"
     else:
-        # Fallback search for phonetic backslashes
         slash_match = re.search(r"\\([a-zA-Z\s\-]+)\\", clean_html)
         if slash_match:
             pronunciation = f"\\{slash_match.group(1).strip()}\\"
@@ -80,18 +80,16 @@ def parse_webpage_entry(html_content, date_str):
     if pos_match:
         part_of_speech = pos_match.group(1).strip().lower()
     else:
-        # Fallback search
         pos_fallback = re.search(
             r"\b(noun|verb|adjective|adverb)\b", clean_html, re.IGNORECASE
         )
         if pos_fallback:
             part_of_speech = pos_fallback.group(1).lower()
 
-    # 5. Extract Full "What It Means" Section (including all paragraphs)
+    # 5. Extract Full "What It Means" Section
     definition = "Definition available online."
     example = ""
 
-    # Capture everything between 'What It Means' and the next section header
     wim_match = re.search(
         r"<h2>What It Means</h2>\s*(.*?)\s*(?:<h2>|</article>|Did You Know)",
         clean_html,
@@ -109,7 +107,7 @@ def parse_webpage_entry(html_content, date_str):
         if len(parts) > 1:
             example = parts[1]
 
-    # Clean up trailing 'See the entry >' text if present
+    # Clean up trailing buttons
     definition = re.sub(r"See the entry\s*>", "", definition, flags=re.IGNORECASE).strip()
     example = re.sub(r"See the entry\s*>", "", example, flags=re.IGNORECASE).strip()
 
@@ -125,14 +123,14 @@ def parse_webpage_entry(html_content, date_str):
 
 def accumulate_words():
     existing_words = []
-    existing_word_names = set()
+    existing_word_dates = set()
 
     # Load existing words from words.json
     try:
         with open("words.json", "r", encoding="utf-8") as f:
             existing_words = json.load(f)
-            existing_word_names = {
-                item["word"].lower() for item in existing_words if "word" in item
+            existing_word_dates = {
+                item["date"] for item in existing_words if "date" in item
             }
         print(f"Loaded {len(existing_words)} existing words from words.json.")
     except (FileNotFoundError, json.JSONDecodeError):
@@ -148,6 +146,12 @@ def accumulate_words():
 
     while current_date >= START_DATE:
         date_str = current_date.strftime("%Y-%m-%d")
+
+        # Skip date if already downloaded
+        if date_str in existing_word_dates:
+            current_date -= datetime.timedelta(days=1)
+            continue
+
         url = f"https://www.merriam-webster.com/word-of-the-day/{date_str}"
 
         try:
@@ -158,13 +162,8 @@ def accumulate_words():
             word_entry = parse_webpage_entry(html_content, date_str)
 
             if word_entry:
-                # Skip if already in database
-                if word_entry["word"] in existing_word_names:
-                    current_date -= datetime.timedelta(days=1)
-                    continue
-
                 existing_words.append(word_entry)
-                existing_word_names.add(word_entry["word"])
+                existing_word_dates.add(date_str)
                 new_words_added += 1
 
                 print(
@@ -185,7 +184,7 @@ def accumulate_words():
         json.dump(existing_words, f, indent=2, ensure_ascii=False)
 
     print(
-        f"\nDone! Added {new_words_added} new words. Total dataset size: {len(existing_words)} words."
+        f"\n🎉 Done! Added {new_words_added} new words. Total dataset size: {len(existing_words)} words."
     )
 
 
