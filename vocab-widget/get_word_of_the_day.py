@@ -5,20 +5,18 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 
-# Force Windows Terminal to use UTF-8 encoding for prints
+# Force Windows Terminal to use UTF-8 encoding
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except AttributeError:
-        pass  # Fallback for older Python versions
+        pass
 
-# Dynamically locate the directory where this script lives
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Build absolute paths for both JSON files
 WORD_OF_THE_DAY_PATH = os.path.join(SCRIPT_DIR, "wordoftheday.json")
 WORDS_ARCHIVE_PATH = os.path.join(SCRIPT_DIR, "words.json")
 
@@ -26,7 +24,6 @@ MW_RSS_URL = "https://www.merriam-webster.com/wotd/feed/rss2"
 
 
 def clean_html_tags(raw_html):
-    """Strips HTML formatting tags like <i> or <p> and converts HTML entities."""
     if not raw_html:
         return ""
     clean_text = re.sub(r"<[^>]+>", "", raw_html)
@@ -34,10 +31,8 @@ def clean_html_tags(raw_html):
 
 
 def parse_entry_details(raw_desc, pub_date_str):
-    """Extracts date, pronunciation, definition, and a single clean example sentence."""
     text = clean_html_tags(raw_desc)
 
-    # 1. Convert RSS publication date to ISO format (YYYY-MM-DD)
     iso_date = ""
     if pub_date_str:
         try:
@@ -46,21 +41,17 @@ def parse_entry_details(raw_desc, pub_date_str):
         except Exception:
             iso_date = datetime.today().strftime("%Y-%m-%d")
 
-    # 2. Extract Pronunciation (text inside backslashes)
     pronunciation = ""
     pron_match = re.search(r"\\(.*?)\\", text)
     if pron_match:
         pronunciation = f"\\{pron_match.group(1)}\\"
 
-    # 3. Cut off 'Did you know?' essays and 'See the entry >' buttons
     text = re.split(r"Did you know\?", text, flags=re.IGNORECASE)[0].strip()
     text = re.sub(r"See the entry\s*>", "", text, flags=re.IGNORECASE)
 
-    # 4. Remove secondary newspaper quotes section
     if "Examples:" in text:
         text = re.split(r"Examples:", text, flags=re.IGNORECASE, maxsplit=1)[0].strip()
 
-    # 5. Split text by '//' to cleanly separate definition and example
     parts = [p.strip() for p in text.split("//") if p.strip()]
 
     definition = ""
@@ -89,82 +80,100 @@ def process_daily_word():
         MW_RSS_URL, headers={"User-Agent": "Mozilla/5.0"}
     )
 
-    with urllib.request.urlopen(req) as response:
-        xml_data = response.read()
+    # 1. Retry network connection up to 3 times
+    xml_data = None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req) as response:
+                xml_data = response.read()
+            break
+        except Exception as e:
+            if attempt < 2:
+                print(f"[RETRY] Network attempt {attempt + 1} failed ({e}). Retrying in 3s...")
+                time.sleep(3)
+            else:
+                print(f"[ERROR] Failed to fetch RSS feed after 3 attempts: {e}")
+                sys.exit(1)
 
     root = ET.fromstring(xml_data)
+    items = root.findall(".//item")
 
-    item = root.find(".//item")
-    if item is None:
-        print("Error: Could not find any word items in the RSS feed.")
+    if not items:
+        print("[ERROR] No word items found in RSS feed.")
         return
 
-    title_elem = item.find("title")
-    description_elem = item.find("description")
-    pub_date_elem = item.find("pubDate")
-
-    raw_title = title_elem.text or "" if title_elem is not None else ""
-    word = raw_title.split(":")[-1].strip().lower()
-    raw_desc = description_elem.text or "" if description_elem is not None else ""
-    pub_date_str = pub_date_elem.text if pub_date_elem is not None else ""
-
-    # Detect Part of Speech
-    part_of_speech = "noun"
-    pos_match = re.search(
-        r"\b(noun|verb|adjective|adverb)\b", clean_html_tags(raw_desc), re.IGNORECASE
-    )
-    if pos_match:
-        part_of_speech = pos_match.group(1).lower()
-
-    # Parse formatted fields
-    iso_date, pronunciation, definition, example = parse_entry_details(
-        raw_desc, pub_date_str
-    )
-
-    today_word_obj = {
-        "date": iso_date,
-        "word": word,
-        "pronunciation": pronunciation,
-        "partOfSpeech": part_of_speech,
-        "definition": definition,
-        "example": example,
-    }
-
-    # 1. Save single object to wordoftheday.json
-    with open(WORD_OF_THE_DAY_PATH, "w", encoding="utf-8") as f:
-        json.dump(today_word_obj, f, indent=2, ensure_ascii=False)
-    print(f"Updated wordoftheday.json with today's word: '{word}' ({iso_date})")
-
-    # 2. Read archive from words.json
+    # 2. Read existing archive
     existing_words = []
     try:
         with open(WORDS_ARCHIVE_PATH, "r", encoding="utf-8") as f:
             existing_words = json.load(f)
         print(f"Loaded {len(existing_words)} existing words from words.json.")
     except (FileNotFoundError, json.JSONDecodeError):
-        print("words.json not found or empty. Starting a fresh list!")
         existing_words = []
 
-    # 3. Check if word or date already exists
-    is_already_present = any(
-        item.get("word", "").lower() == word.lower() or item.get("date") == iso_date
-        for item in existing_words
-    )
+    existing_dates = {item.get("date") for item in existing_words if "date" in item}
+    existing_word_names = {item.get("word", "").lower() for item in existing_words if "word" in item}
 
-    # 4. Append to words.json only if missing
-    if not is_already_present:
-        existing_words.insert(0, today_word_obj)
+    new_words_added = 0
+    latest_word_obj = None
+
+    # 3. Loop through ALL items in the RSS feed (last ~7 days)
+    for idx, item in enumerate(items):
+        title_elem = item.find("title")
+        description_elem = item.find("description")
+        pub_date_elem = item.find("pubDate")
+
+        raw_title = title_elem.text or "" if title_elem is not None else ""
+        word = raw_title.split(":")[-1].strip().lower()
+        raw_desc = description_elem.text or "" if description_elem is not None else ""
+        pub_date_str = pub_date_elem.text if pub_date_elem is not None else ""
+
+        part_of_speech = "noun"
+        pos_match = re.search(
+            r"\b(noun|verb|adjective|adverb)\b", clean_html_tags(raw_desc), re.IGNORECASE
+        )
+        if pos_match:
+            part_of_speech = pos_match.group(1).lower()
+
+        iso_date, pronunciation, definition, example = parse_entry_details(
+            raw_desc, pub_date_str
+        )
+
+        word_obj = {
+            "date": iso_date,
+            "word": word,
+            "pronunciation": pronunciation,
+            "partOfSpeech": part_of_speech,
+            "definition": definition,
+            "example": example,
+        }
+
+        # Keep track of the top item (today's word) for wordoftheday.json
+        if idx == 0:
+            latest_word_obj = word_obj
+
+        # Check if missing from archive
+        if iso_date not in existing_dates and word.lower() not in existing_word_names:
+            existing_words.append(word_obj)
+            existing_dates.add(iso_date)
+            existing_word_names.add(word.lower())
+            new_words_added += 1
+            print(f"[CATCH-UP] Added missing word: '{word}' ({iso_date})")
+
+    # 4. Save today's word to wordoftheday.json
+    if latest_word_obj:
+        with open(WORD_OF_THE_DAY_PATH, "w", encoding="utf-8") as f:
+            json.dump(latest_word_obj, f, indent=2, ensure_ascii=False)
+        print(f"Updated wordoftheday.json with today's word: '{latest_word_obj['word']}' ({latest_word_obj['date']})")
+
+    # 5. Save updated archive if new words were caught up
+    if new_words_added > 0:
         existing_words.sort(key=lambda x: x.get("date", ""), reverse=True)
-
         with open(WORDS_ARCHIVE_PATH, "w", encoding="utf-8") as f:
             json.dump(existing_words, f, indent=2, ensure_ascii=False)
-        print(
-            f"[SUCCESS] Appended '{word}' ({iso_date}) to words.json archive. Total words: {len(existing_words)}"
-        )
+        print(f"[SUCCESS] Appended {new_words_added} new/missed word(s) to words.json. Total words: {len(existing_words)}")
     else:
-        print(
-            f"[INFO] '{word}' ({iso_date}) is already present in words.json. Archive left untouched."
-        )
+        print("[INFO] No missing words found in RSS feed. Archive is up to date.")
 
 
 if __name__ == "__main__":
