@@ -8,7 +8,7 @@ import urllib.request
 
 # Target Date Range: August 12, 2021 up to Today (August 4, 2026)
 START_DATE = datetime.date(2026, 7, 12)
-END_DATE = datetime.date(2026, 8, 4)
+END_DATE = datetime.date(2026, 8, 3)
 
 # Browser headers to prevent 403 Forbidden blocking
 HEADERS = {

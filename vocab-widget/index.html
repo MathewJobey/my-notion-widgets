@@ -176,99 +176,84 @@
       <span class="word-meta" id="wordMeta"></span>
     </div>
     
-    <div class="word-definition" id="wordDefinition">Loading vocabulary database...</div>
+    <div class="word-definition" id="wordDefinition">Loading vocabulary...</div>
     <div class="word-example" id="wordExample" style="display: none;"></div>
   </div>
 
-  <!-- Source Footer Link -->
+  <!-- Source Footer Link with ID for Dynamic URL Updating -->
   <div class="card-footer">
-    <span>Source: <a href="https://www.merriam-webster.com/" target="_blank" rel="noopener">Merriam-Webster</a></span>
+    <span>Source: <a id="sourceLink" href="https://www.merriam-webster.com/" target="_blank" rel="noopener">Merriam-Webster</a></span>
   </div>
 </div>
 
-  <script>
+<script>
+  // Memory cache for full dataset when user clicks refresh
   let vocabularyList = [];
 
-  // Helper 1: Get local today date as YYYY-MM-DD
-  function getTodayISOString() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  // Step 1: Fetch words.json dataset
-  async function loadVocabularyData() {
+  // Step 1: Initial Load -> Fetch wordoftheday.json ONLY (< 1 KB instant load!)
+  async function loadWordOfTheDay() {
     try {
-      const response = await fetch("words.json");
-      if (!response.ok) throw new Error("Could not load words.json");
+      const response = await fetch("wordoftheday.json");
+      if (!response.ok) throw new Error("Could not load wordoftheday.json");
 
-      vocabularyList = await response.json();
-
-      if (vocabularyList.length > 0) {
-        displayTodayWord(); // Initial load shows today's word!
-      } else {
-        showErrorState("No words found in dataset.");
-      }
+      const todayWord = await response.json();
+      renderWordCard(todayWord);
     } catch (error) {
-      console.error("Error loading words:", error);
-      showErrorState("Unable to load words.json dataset.");
+      console.error("Error loading wordoftheday.json:", error);
+      // Fallback: If wordoftheday.json fails, load from archive
+      displayRandomWord();
     }
   }
 
-  // Step 2: Find and display today's word
-  function displayTodayWord() {
-    if (vocabularyList.length === 0) return;
+  // Step 2: Refresh Button -> Lazy-loads words.json archive on demand
+  async function displayRandomWord() {
+    // If archive hasn't been fetched yet, download it once
+    if (vocabularyList.length === 0) {
+      try {
+        const response = await fetch("words.json");
+        if (!response.ok) throw new Error("Could not load words.json");
 
-    const todayStr = getTodayISOString();
-
-    // Look for a word matching today's date in words.json
-    let todayWord = vocabularyList.find(item => item.date === todayStr);
-
-    // Fallback: If today's word isn't added yet, show the most recent word (index 0)
-    if (!todayWord) {
-      todayWord = vocabularyList[0];
+        vocabularyList = await response.json();
+      } catch (error) {
+        console.error("Error loading words.json dataset:", error);
+        showErrorState("Unable to load vocabulary database.");
+        return;
+      }
     }
 
-    renderWordCard(todayWord);
+    // Select a random word from the cached archive
+    if (vocabularyList.length > 0) {
+      const randomIndex = Math.floor(Math.random() * vocabularyList.length);
+      const selectedItem = vocabularyList[randomIndex];
+      renderWordCard(selectedItem);
+    }
   }
 
-  // Step 3: Display a random word when refresh button is clicked
-  function displayRandomWord() {
-    if (vocabularyList.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * vocabularyList.length);
-    const selectedItem = vocabularyList[randomIndex];
-
-    renderWordCard(selectedItem);
-  }
-
-  // Shared Helper: Render word object with fade-out animation
+  // Step 3: Shared UI Renderer (Handles text updates, link updates & animations)
   function renderWordCard(selectedItem) {
     const container = document.getElementById("vocabContent");
     container.classList.add("fade-out");
 
     setTimeout(() => {
-      // 1. Update Word Title
+      // 1. Word Title
       document.getElementById("wordTitle").innerText = selectedItem.word;
 
-      // 2. Update Pronunciation
+      // 2. Pronunciation
       const pronEl = document.getElementById("wordPronunciation");
-      if (selectedItem.pronunciation) {
+      if (selectedItem.pronunciation && selectedItem.pronunciation.trim() !== "") {
         pronEl.innerText = selectedItem.pronunciation;
         pronEl.style.display = "inline";
       } else {
         pronEl.style.display = "none";
       }
 
-      // 3. Update Part of Speech
+      // 3. Part of Speech
       document.getElementById("wordMeta").innerText = selectedItem.partOfSpeech ? `• ${selectedItem.partOfSpeech}` : "";
 
-      // 4. Update Definition
+      // 4. Definition
       document.getElementById("wordDefinition").innerText = selectedItem.definition;
 
-      // 5. Update Example Sentence
+      // 5. Example Sentence
       const exampleEl = document.getElementById("wordExample");
       if (selectedItem.example && selectedItem.example.trim() !== "") {
         exampleEl.innerText = `"${selectedItem.example}"`;
@@ -276,6 +261,10 @@
       } else {
         exampleEl.style.display = "none";
       }
+
+      // 6. Dynamic Direct Link to Merriam-Webster Dictionary Page
+      const cleanWord = encodeURIComponent(selectedItem.word.trim());
+      document.getElementById("sourceLink").href = `https://www.merriam-webster.com/dictionary/${cleanWord}`;
 
       container.classList.remove("fade-out");
     }, 300);
@@ -287,9 +276,11 @@
     document.getElementById("wordMeta").innerText = "";
     document.getElementById("wordDefinition").innerText = message;
     document.getElementById("wordExample").style.display = "none";
+    document.getElementById("sourceLink").href = "https://www.merriam-webster.com/";
   }
 
-  loadVocabularyData();
+  // Execute initial load on startup
+  loadWordOfTheDay();
 </script>
 
 </body>

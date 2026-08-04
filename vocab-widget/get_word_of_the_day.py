@@ -2,9 +2,25 @@ import email.utils
 from datetime import datetime
 import html
 import json
+import os
 import re
+import sys
 import urllib.request
 import xml.etree.ElementTree as ET
+
+# Force Windows Terminal to use UTF-8 encoding for prints
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass  # Fallback for older Python versions
+
+# Dynamically locate the directory where this script lives
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Build absolute paths for both JSON files
+WORD_OF_THE_DAY_PATH = os.path.join(SCRIPT_DIR, "wordoftheday.json")
+WORDS_ARCHIVE_PATH = os.path.join(SCRIPT_DIR, "words.json")
 
 MW_RSS_URL = "https://www.merriam-webster.com/wotd/feed/rss2"
 
@@ -21,7 +37,7 @@ def parse_entry_details(raw_desc, pub_date_str):
     """Extracts date, pronunciation, definition, and a single clean example sentence."""
     text = clean_html_tags(raw_desc)
 
-    # 1. Convert RSS publication date to ISO 8601 format (YYYY-MM-DD)
+    # 1. Convert RSS publication date to ISO format (YYYY-MM-DD)
     iso_date = ""
     if pub_date_str:
         try:
@@ -44,7 +60,7 @@ def parse_entry_details(raw_desc, pub_date_str):
     if "Examples:" in text:
         text = re.split(r"Examples:", text, flags=re.IGNORECASE, maxsplit=1)[0].strip()
 
-    # 5. Split text by '//' to cleanly separate definition and individual examples
+    # 5. Split text by '//' to cleanly separate definition and example
     parts = [p.strip() for p in text.split("//") if p.strip()]
 
     definition = ""
@@ -78,7 +94,6 @@ def process_daily_word():
 
     root = ET.fromstring(xml_data)
 
-    # Grab the first item from the RSS feed (today's word)
     item = root.find(".//item")
     if item is None:
         print("Error: Could not find any word items in the RSS feed.")
@@ -115,31 +130,41 @@ def process_daily_word():
         "example": example,
     }
 
-    # 1. Overwrite wordoftheday.json with today's single word object
-    with open("vocab-widget\wordoftheday.json", "w", encoding="utf-8") as f:
+    # 1. Save single object to wordoftheday.json
+    with open(WORD_OF_THE_DAY_PATH, "w", encoding="utf-8") as f:
         json.dump(today_word_obj, f, indent=2, ensure_ascii=False)
     print(f"Updated wordoftheday.json with today's word: '{word}' ({iso_date})")
 
-    # 2. Append to words.json archive if not already present
+    # 2. Read archive from words.json
     existing_words = []
     try:
-        with open("words.json", "r", encoding="utf-8") as f:
+        with open(WORDS_ARCHIVE_PATH, "r", encoding="utf-8") as f:
             existing_words = json.load(f)
+        print(f"Loaded {len(existing_words)} existing words from words.json.")
     except (FileNotFoundError, json.JSONDecodeError):
+        print("words.json not found or empty. Starting a fresh list!")
         existing_words = []
 
-    # Check if this date already exists in words.json
-    date_exists = any(item.get("date") == iso_date for item in existing_words)
+    # 3. Check if word or date already exists
+    is_already_present = any(
+        item.get("word", "").lower() == word.lower() or item.get("date") == iso_date
+        for item in existing_words
+    )
 
-    if not date_exists:
-        existing_words.insert(0, today_word_obj)  # Add to top of array
+    # 4. Append to words.json only if missing
+    if not is_already_present:
+        existing_words.insert(0, today_word_obj)
         existing_words.sort(key=lambda x: x.get("date", ""), reverse=True)
 
-        with open("vocab-widget\words.json", "w", encoding="utf-8") as f:
+        with open(WORDS_ARCHIVE_PATH, "w", encoding="utf-8") as f:
             json.dump(existing_words, f, indent=2, ensure_ascii=False)
-        print(f"Appended '{word}' to words.json archive.")
+        print(
+            f"[SUCCESS] Appended '{word}' ({iso_date}) to words.json archive. Total words: {len(existing_words)}"
+        )
     else:
-        print(f"'{word}' ({iso_date}) is already in words.json archive.")
+        print(
+            f"[INFO] '{word}' ({iso_date}) is already present in words.json. Archive left untouched."
+        )
 
 
 if __name__ == "__main__":
