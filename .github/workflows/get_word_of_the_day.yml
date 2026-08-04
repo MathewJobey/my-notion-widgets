@@ -1,0 +1,44 @@
+name: Daily Word of the Day Automation
+
+on:
+  schedule:
+    # Runs daily at 00:00 UTC (5:30 AM IST)
+    - cron: '0 0 * * *'
+  
+  # Allows you to manually trigger the workflow from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  update-vocab-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out repository files into the GitHub runner workspace
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Run your daily Python script
+      - name: Run get_word_of_the_day.py
+        run: |
+          python get_word_of_the_day.py
+
+      # Step 4: Commit and push updated JSON files if changes were made
+      - name: Commit and push updated JSON files
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add wordoftheday.json words.json
+          
+          # Only commit if there are actual changes to prevent workflow errors
+          if ! git diff --cached --quiet; then
+            git commit -m "auto: update daily word of the day JSON files"
+            git push
+          else
+            echo "No changes detected in JSON files. Skipping commit."
+          fi

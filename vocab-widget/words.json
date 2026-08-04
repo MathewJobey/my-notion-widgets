@@ -1,13 +1,5 @@
 [
   {
-    "date": "2026-08-04",
-    "word": "élan",
-    "pronunciation": "\\ay-LAHN\\",
-    "partOfSpeech": "noun",
-    "definition": "Élan refers to energy and enthusiasm.",
-    "example": "The dancers performed with great style and élan; we were exhausted just watching them."
-  },
-  {
     "date": "2026-08-03",
     "word": "mitigate",
     "pronunciation": "\\MIT-uh-gayt\\",
@@ -53,7 +45,7 @@
     "pronunciation": "\\in-VAY-gul\\",
     "partOfSpeech": "verb",
     "definition": "To inveigle someone is to persuade them in a clever or deceptive way to do something. Inveigle can also mean “to get something in a clever or deceptive way.”",
-    "example": "According to rumors, the company inveigled employees into signing the agreement. // Their attempts to inveigle the information from her were, eventually, fruitful."
+    "example": "According to rumors, the company inveigled employees into signing the agreement."
   },
   {
     "date": "2026-07-28",
@@ -78,5 +70,117 @@
     "partOfSpeech": "noun",
     "definition": "Aerie refers to the nest of a bird (such as an eagle or hawk) built high up on a cliff or on the top of a mountain. It can also be used for a room or building built high up so that people inside can see things happening below them.",
     "example": "From the lighthouse's aerie tourists can get a bird's-eye view of the rocky coastline."
+  },
+  {
+    "date": "2026-07-25",
+    "word": "vituperate",
+    "pronunciation": "\\vye-TOO-puh-rayt\\",
+    "partOfSpeech": "verb",
+    "definition": "To vituperate someone is to criticize or censure them severely or abusively. Vituperate can also mean \"to use harsh condemnatory language.\"",
+    "example": "They were vituperated for betraying their friends."
+  },
+  {
+    "date": "2026-07-24",
+    "word": "itinerant",
+    "pronunciation": "\\eye-TIN-uh-runt\\",
+    "partOfSpeech": "adjective",
+    "definition": "Itinerant describes someone who travels from place to place or only stays in a place for a short amount of time. It is used especially for people who travel in a circuit for their profession.",
+    "example": "Being an itinerant musician gave her the opportunity to see the wonders of the world with her own eyes."
+  },
+  {
+    "date": "2026-07-23",
+    "word": "maverick",
+    "pronunciation": "\\MAV-rik\\",
+    "partOfSpeech": "noun",
+    "definition": "Maverick refers to a person who refuses to follow the customs or rules of a group; in other words, a nonconformist.",
+    "example": "Ayo has always been a bit of a maverick in the fashion world, inventing new trends rather than following them."
+  },
+  {
+    "date": "2026-07-22",
+    "word": "stalwart",
+    "pronunciation": "\\STAWL-wert\\",
+    "partOfSpeech": "adjective",
+    "definition": "Stalwart is a formal word used to describe someone or something that is very loyal and dedicated or that is physically or mentally strong.",
+    "example": "He was a stalwart civil rights supporter throughout his political career."
+  },
+  {
+    "date": "2026-07-21",
+    "word": "dog days",
+    "pronunciation": "\\DAWG-DAYZ\\",
+    "partOfSpeech": "plural noun",
+    "definition": "Dog days is a plural noun that refers to the hottest time of the year, which in the northern hemisphere is usually between early July and early September. Dog days can also refer to a period of stagnation or inactivity suggestive of hot, sultry weather when it can be difficult to summon the energy required for hard work.",
+    "example": "Spending the day at a swimming hole has always been the perfect relief for the dog days of summer."
+  },
+  {
+    "date": "2026-07-20",
+    "word": "raffish",
+    "pronunciation": "\\RAF-ish\\",
+    "partOfSpeech": "adjective",
+    "definition": "Raffish describes people and things that show a careless but usually attractive unconventionality.",
+    "example": "She didn't expect to like him but his raffish charm quickly won her over."
+  },
+  {
+    "date": "2026-07-19",
+    "word": "accentuate",
+    "pronunciation": "\\ak-SEN-shu-wayt\\",
+    "partOfSpeech": "verb",
+    "definition": "To accentuate something is to make it more noticeable.",
+    "example": "He likes to wear clothes that accentuate his muscular build."
+  },
+  {
+    "date": "2026-07-18",
+    "word": "quid pro quo",
+    "pronunciation": "\\kwid-proh-KWOH\\",
+    "partOfSpeech": "noun",
+    "definition": "Quid pro quo refers to something that is given to you or done for you in return for something you have given to or done for someone else.",
+    "example": "If they do us this favor, they’ll expect a quid pro quo."
+  },
+  {
+    "date": "2026-07-17",
+    "word": "obdurate",
+    "pronunciation": "\\AHB-duh-rut\\",
+    "partOfSpeech": "adjective",
+    "definition": "Obdurate is a formal word that means \"resistant to persuasion.\" It is usually used to describe someone who is not willing to change their methods or opinions, or something that is not easily altered.",
+    "example": "Though obdurate problems loom, the organization under its new leadership is poised to make real and effective changes."
+  },
+  {
+    "date": "2026-07-16",
+    "word": "bibelot",
+    "pronunciation": "\\BEE-buh-loh\\",
+    "partOfSpeech": "noun",
+    "definition": "A bibelot is a small household ornament or decorative object.",
+    "example": "His grandfather set up a table every week at the flea market where he sold all sorts of bibelots and bric-a-brac, from ceramic figurines to tiny blown glass sculptures."
+  },
+  {
+    "date": "2026-07-15",
+    "word": "loquacious",
+    "pronunciation": "\\loh-KWAY-shus\\",
+    "partOfSpeech": "adjective",
+    "definition": "Loquacious means “liking to talk and talking smoothly and easily.” Someone described as loquacious might also be called wordy (prone to using more words than necessary) or garrulous (tending to talk a lot).",
+    "example": "We were entertained all afternoon by our host’s loquacious parrot and its nonstop script of favored phrases."
+  },
+  {
+    "date": "2026-07-14",
+    "word": "yaw",
+    "pronunciation": "\\YAW\\",
+    "partOfSpeech": "verb",
+    "definition": "The verb yaw when used for the action of a ship, aircraft, spacecraft, or projectile means \"to move to the left or right especially in an uncontrolled manner.\" More broadly, yaw is used as a synonym of alternate to mean \"to change from one to another repeatedly.\"",
+    "example": "The rogue wave hit the vessel, and the ship yawed hard to the right."
+  },
+  {
+    "date": "2026-07-13",
+    "word": "implacable",
+    "pronunciation": "\\im-PLAK-uh-bul\\",
+    "partOfSpeech": "adjective",
+    "definition": "Someone or something described as implacable is not capable of being appeased or changed.",
+    "example": "The project faced implacable resistance from community members, and is now off the table."
+  },
+  {
+    "date": "2026-07-12",
+    "word": "fulcrum",
+    "pronunciation": "\\FULL-krum\\",
+    "partOfSpeech": "noun",
+    "definition": "In technical use, fulcrum refers to the support on which a lever moves when it is used to lift something. In figurative use, fulcrum refers to a person or thing that makes it possible for something to function or develop, or in other words, one who plays an essential role in something.",
+    "example": "Although the lead actor was phenomenal, critics suggested that the supporting cast was the real fulcrum of the show."
   }
 ]
