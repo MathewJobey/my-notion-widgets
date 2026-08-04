@@ -3,11 +3,12 @@ import email.utils
 import html
 import json
 import re
+import random
 import time
 import urllib.request
 
 # Target Date Range: August 12, 2021 up to Today (August 4, 2026)
-START_DATE = datetime.date(2026, 7, 12)
+START_DATE = datetime.date(2021, 8, 12)
 END_DATE = datetime.date(2026, 8, 3)
 
 # Browser headers to prevent 403 Forbidden blocking
@@ -154,27 +155,42 @@ def accumulate_words():
 
         url = f"https://www.merriam-webster.com/word-of-the-day/{date_str}"
 
-        try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req) as response:
-                html_content = response.read().decode("utf-8")
+        # =========================================================
+        # RETRY LOGIC FOR A SINGLE DATE (REPLACES OLD TRY/EXCEPT)
+        # =========================================================
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(url, headers=HEADERS)
+                with urllib.request.urlopen(req) as response:
+                    html_content = response.read().decode("utf-8")
 
-            word_entry = parse_webpage_entry(html_content, date_str)
+                word_entry = parse_webpage_entry(html_content, date_str)
 
-            if word_entry:
-                existing_words.append(word_entry)
-                existing_word_dates.add(date_str)
-                new_words_added += 1
+                if word_entry:
+                    existing_words.append(word_entry)
+                    existing_word_dates.add(date_str)
+                    new_words_added += 1
 
-                print(
-                    f"[{new_words_added}/{total_days}] Added '{word_entry['word']}' ({word_entry['partOfSpeech']}) for {date_str}"
-                )
+                    print(
+                        f"[{new_words_added}/{total_days}] Added '{word_entry['word']}' ({word_entry['partOfSpeech']}) for {date_str}"
+                    )
 
-        except Exception as e:
-            print(f"⚠️ Skipped {date_str}: {e}")
+                # If successful, exit the retry loop immediately
+                break
 
+            except Exception as e:
+                # If attempt 0 or 1 fails, wait 2 seconds before retrying
+                if attempt < 2:
+                    time.sleep(2)
+                else:
+                    # If all 3 attempts fail, print warning and move on
+                    print(f"⚠️ Skipped {date_str} after 3 attempts: {e}")
+
+        # Move to the previous date
         current_date -= datetime.timedelta(days=1)
-        time.sleep(0.2)
+
+        # Pause randomly between 0.3s and 0.7s to mimic human behavior
+        time.sleep(random.uniform(0.3, 0.7))
 
     # Sort dataset chronologically (newest dates first)
     existing_words.sort(key=lambda x: x.get("date", ""), reverse=True)
