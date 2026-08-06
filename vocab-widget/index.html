@@ -5,44 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Word of the Day</title>
   <style>
-  /* Reset box sizes for consistent layout */
+  /* 1. Reset box sizes for consistent layout */
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
 
-  /* Full screen dark background fitting Notion frame */
+  /* 2. Lock root iframe boundary */
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* 3. Center card vertically so it expands upward and downward */
   body {
     background-color: #191919;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    align-items: center; /* Centers card in middle & expands top/bottom equally */
     padding: 8px;
   }
 
-  /* Main widget card */
+  /* 4. Auto-resizing Card Container */
   .vocab-card {
     background-color: #222222;
     border: 1px solid #333333;
     border-radius: 10px;
     padding: 16px 18px;
     width: 100%;
-    max-width: 100%;
+    height: auto; /* Shrink-wraps tightly around short entries */
+    max-height: 100%; /* Capped at maximum Notion frame height */
+    display: flex;
+    flex-direction: column; /* Stacks header, content, and footer vertically */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* Header row with widget title & refresh icon */
+  /* 5. Header row permanently pinned at top */
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    flex-shrink: 0; /* Prevents title and refresh button from compressing */
   }
 
   /* Widget header text */
@@ -77,8 +85,12 @@
     border-color: #10b981;
   }
 
-  /* Animated container for word transitions */
+  /* 6. Scrollable Content Container */
   .vocab-content {
+    flex: 1 1 auto;
+    min-height: 0; /* CRITICAL FIX: Allows flex item to shrink for scrolling */
+    overflow-y: auto; /* Scrollbar appears ONLY if definition overflows max height */
+    padding-right: 6px; /* Space between text and scrollbar */
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 1;
     transform: translateY(0);
@@ -137,7 +149,7 @@
     margin-top: 6px;
   }
 
-  /* Source link footer */
+  /* 7. Footer link permanently pinned at bottom */
   .card-footer {
     margin-top: 12px;
     padding-top: 8px;
@@ -145,6 +157,7 @@
     font-size: 10px;
     color: #666666;
     text-align: right;
+    flex-shrink: 0; /* Prevents footer link from being compressed or hidden */
   }
 
   .card-footer a {
@@ -156,6 +169,24 @@
   .card-footer a:hover {
     color: #10b981;
     text-decoration: underline;
+  }
+
+  /* 8. Custom Aesthetic Dark Mode Scrollbar */
+  .vocab-content::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .vocab-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .vocab-content::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 4px;
+  }
+
+  .vocab-content::-webkit-scrollbar-thumb:hover {
+    background: #10b981; /* Emerald green accent on scrollbar hover */
   }
 </style>
 
@@ -180,17 +211,15 @@
     <div class="word-example" id="wordExample" style="display: none;"></div>
   </div>
 
-  <!-- Source Footer Link with ID for Dynamic URL Updating -->
+  <!-- Source Footer Link -->
   <div class="card-footer">
     <span>Source: <a id="sourceLink" href="https://www.merriam-webster.com/" target="_blank" rel="noopener">Merriam-Webster</a></span>
   </div>
 </div>
 
 <script>
-  // Memory cache for full dataset when user clicks refresh
   let vocabularyList = [];
 
-  // Step 1: Initial Load -> Fetch wordoftheday.json ONLY (< 1 KB instant load!)
   async function loadWordOfTheDay() {
     try {
       const response = await fetch("wordoftheday.json");
@@ -200,14 +229,11 @@
       renderWordCard(todayWord);
     } catch (error) {
       console.error("Error loading wordoftheday.json:", error);
-      // Fallback: If wordoftheday.json fails, load from archive
       displayRandomWord();
     }
   }
 
-  // Step 2: Refresh Button -> Lazy-loads words.json archive on demand
   async function displayRandomWord() {
-    // If archive hasn't been fetched yet, download it once
     if (vocabularyList.length === 0) {
       try {
         const response = await fetch("words.json");
@@ -221,7 +247,6 @@
       }
     }
 
-    // Select a random word from the cached archive
     if (vocabularyList.length > 0) {
       const randomIndex = Math.floor(Math.random() * vocabularyList.length);
       const selectedItem = vocabularyList[randomIndex];
@@ -229,16 +254,13 @@
     }
   }
 
-  // Step 3: Shared UI Renderer (Handles text updates, link updates & animations)
   function renderWordCard(selectedItem) {
     const container = document.getElementById("vocabContent");
     container.classList.add("fade-out");
 
     setTimeout(() => {
-      // 1. Word Title
       document.getElementById("wordTitle").innerText = selectedItem.word;
 
-      // 2. Pronunciation
       const pronEl = document.getElementById("wordPronunciation");
       if (selectedItem.pronunciation && selectedItem.pronunciation.trim() !== "") {
         pronEl.innerText = selectedItem.pronunciation;
@@ -247,13 +269,10 @@
         pronEl.style.display = "none";
       }
 
-      // 3. Part of Speech
       document.getElementById("wordMeta").innerText = selectedItem.partOfSpeech ? `• ${selectedItem.partOfSpeech}` : "";
 
-      // 4. Definition
       document.getElementById("wordDefinition").innerText = selectedItem.definition;
 
-      // 5. Example Sentence
       const exampleEl = document.getElementById("wordExample");
       if (selectedItem.example && selectedItem.example.trim() !== "") {
         exampleEl.innerText = `"${selectedItem.example}"`;
@@ -262,9 +281,11 @@
         exampleEl.style.display = "none";
       }
 
-      // 6. Dynamic Direct Link to Merriam-Webster Dictionary Page
       const cleanWord = encodeURIComponent(selectedItem.word.trim());
       document.getElementById("sourceLink").href = `https://www.merriam-webster.com/dictionary/${cleanWord}`;
+
+      // Reset scroll position to top when a new word loads
+      container.scrollTop = 0;
 
       container.classList.remove("fade-out");
     }, 300);
@@ -279,7 +300,6 @@
     document.getElementById("sourceLink").href = "https://www.merriam-webster.com/";
   }
 
-  // Execute initial load on startup
   loadWordOfTheDay();
 </script>
 
