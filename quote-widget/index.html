@@ -12,49 +12,48 @@
     padding: 0;
   }
 
-  /* 2. Strict root boundary for Notion embed frame */
+  /* 2. Lock root iframe boundary */
   html, body {
     width: 100%;
     height: 100%;
-    max-height: 100%;
-    overflow: hidden; /* Prevents whole-page scrolling */
+    overflow: hidden;
   }
 
-  /* 3. Full screen dark background fitting Notion frame */
+  /* 3. Center card vertically so it expands upward and downward */
   body {
     background-color: #191919;
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 8px; /* Outer cushion inside Notion embed frame */
+    align-items: center; /* Centers card in middle & expands top/bottom equally */
+    padding: 8px;
   }
 
-  /* 4. Main widget card container - Flexbox setup */
+  /* 4. Auto-resizing Card Container */
   .quote-card {
     background-color: #222222;
     border: 1px solid #333333;
     border-radius: 10px;
     padding: 16px 18px;
     width: 100%;
-    height: 100%;
-    max-height: 100%;
+    height: auto; /* Shrink-wraps tightly around short quotes */
+    max-height: 100%; /* Capped at maximum Notion frame height */
     display: flex;
-    flex-direction: column; /* Stacks header and quote text vertically */
+    flex-direction: column;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* 5. Top header row containing title and arrow controls */
+  /* 5. Header stays permanently pinned at top of card */
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
-    flex-shrink: 0; /* Prevents header from ever being pushed off-screen */
+    flex-shrink: 0; /* Prevents title and arrows from shrinking */
   }
 
-  /* Title text styling */
+  /* Title styling */
   .title-text {
     font-size: 11px;
     font-weight: 700;
@@ -63,13 +62,13 @@
     text-transform: uppercase;
   }
 
-  /* Button group wrapper */
+  /* Navigation button group wrapper */
   .button-group {
     display: flex;
     gap: 4px;
   }
 
-  /* Arrow button styling */
+  /* Navigation arrow buttons */
   .arrow-btn {
     background-color: #2a2a2a;
     border: 1px solid #3d3d3d;
@@ -90,12 +89,12 @@
     border-color: #d49e1e;
   }
 
-  /* 6. Scrollable Quote Content Area */
+  /* 6. Quote content area - Scrolls ONLY when quote exceeds max-height */
   .quote-content {
-    flex: 1 1 auto; /* Fills remaining height below header */
-    min-height: 0; /* CRITICAL FIX: Allows flex box to shrink smaller than quote text */
-    overflow-y: auto; /* Adds scrollbar ONLY if content overflows */
-    padding-right: 6px; /* Space between text and scrollbar */
+    flex: 1 1 auto;
+    min-height: 0; /* Allows container to shrink for scrolling */
+    overflow-y: auto; /* Scrollbar appears ONLY if text overflows max-height */
+    padding-right: 6px;
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 1;
     transform: translateY(0);
@@ -106,7 +105,7 @@
     transform: translateY(4px);
   }
 
-  /* Quote text styling */
+  /* Quote text formatting */
   .quote-text {
     font-size: 14px;
     font-style: italic;
@@ -115,14 +114,14 @@
     margin-bottom: 10px;
   }
 
-  /* Author text */
+  /* Author text formatting */
   .quote-author {
     font-size: 12px;
     color: #888888;
     text-align: right;
   }
 
-  /* 7. Custom Aesthetic Dark Mode Scrollbar */
+  /* 7. Custom Dark Mode Scrollbar */
   .quote-content::-webkit-scrollbar {
     width: 5px;
   }
@@ -152,7 +151,7 @@
       </div>
     </div>
     
-    <!-- Animated & Scrollable Content Container -->
+    <!-- Animated & Auto-Scrolling Content Container -->
     <div id="quoteContent" class="quote-content">
       <div class="quote-text" id="quoteText">Loading quote...</div>
       <div class="quote-author" id="quoteAuthor"></div>
@@ -192,7 +191,7 @@
       document.getElementById("quoteText").innerText = `"${quote.text}"`;
       document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
 
-      // Reset scrollbar back to top when a new quote loads
+      // Reset scrollbar back to top on new quote load
       container.scrollTop = 0;
 
       container.classList.remove("fade-out");
