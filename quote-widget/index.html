@@ -5,14 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quote Spotlight</title>
   <style>
-  /* Universal reset to prevent clipping */
+  /* 1. Universal reset to prevent clipping */
   * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
 
-  /* Full screen dark background fitting Notion frame */
+  /* 2. Strict root boundary for Notion embed frame */
+  html, body {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden; /* Prevents whole-page scrolling */
+  }
+
+  /* 3. Full screen dark background fitting Notion frame */
   body {
     background-color: #191919;
     color: #ffffff;
@@ -20,35 +28,33 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    padding: 8px;
+    padding: 8px; /* Outer cushion inside Notion embed frame */
   }
 
-  /* Main widget card container - Flexbox setup */
+  /* 4. Main widget card container - Flexbox setup */
   .quote-card {
     background-color: #222222;
     border: 1px solid #333333;
     border-radius: 10px;
     padding: 16px 18px;
     width: 100%;
-    height: 100%; /* Fill 100% of Notion embed frame height */
+    height: 100%;
+    max-height: 100%;
     display: flex;
-    flex-direction: column; /* Stack header and quote vertically */
+    flex-direction: column; /* Stacks header and quote text vertically */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
-  /* Top header row containing title and arrow controls */
+  /* 5. Top header row containing title and arrow controls */
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
-    flex-shrink: 0; /* Prevents header from shrinking when text is long */
+    flex-shrink: 0; /* Prevents header from ever being pushed off-screen */
   }
 
-  /* Title text with warm golden tinge */
+  /* Title text styling */
   .title-text {
     font-size: 11px;
     font-weight: 700;
@@ -84,9 +90,10 @@
     border-color: #d49e1e;
   }
 
-  /* Scrollable Quote Content Area */
+  /* 6. Scrollable Quote Content Area */
   .quote-content {
-    flex: 1; /* Fills remaining height below header */
+    flex: 1 1 auto; /* Fills remaining height below header */
+    min-height: 0; /* CRITICAL FIX: Allows flex box to shrink smaller than quote text */
     overflow-y: auto; /* Adds scrollbar ONLY if content overflows */
     padding-right: 6px; /* Space between text and scrollbar */
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -115,7 +122,7 @@
     text-align: right;
   }
 
-  /* Custom Aesthetic Dark Mode Scrollbar */
+  /* 7. Custom Aesthetic Dark Mode Scrollbar */
   .quote-content::-webkit-scrollbar {
     width: 5px;
   }
@@ -130,7 +137,7 @@
   }
 
   .quote-content::-webkit-scrollbar-thumb:hover {
-    background: #d49e1e; /* Gold color on scrollbar hover */
+    background: #d49e1e;
   }
 </style>
 </head>
@@ -185,7 +192,7 @@
       document.getElementById("quoteText").innerText = `"${quote.text}"`;
       document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
 
-      // Reset scroll position back to the top when a new quote loads
+      // Reset scrollbar back to top when a new quote loads
       container.scrollTop = 0;
 
       container.classList.remove("fade-out");
