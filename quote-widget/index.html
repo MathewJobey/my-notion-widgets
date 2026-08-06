@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quote Spotlight</title>
   <style>
-  /* Universal reset to prevent right-side clipping */
+  /* Universal reset to prevent clipping */
   * {
     box-sizing: border-box;
     margin: 0;
@@ -22,18 +22,20 @@
     align-items: center;
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* Removes scrollbars */
-    padding: 8px; /* Outer cushion inside Notion embed frame */
+    overflow: hidden;
+    padding: 8px;
   }
 
-  /* Main widget card container */
+  /* Main widget card container - Flexbox setup */
   .quote-card {
     background-color: #222222;
     border: 1px solid #333333;
     border-radius: 10px;
-    padding: 16px 18px; /* Compact padding */
-    width: 100%; /* Expands dynamically to fill column */
-    max-width: 100%;
+    padding: 16px 18px;
+    width: 100%;
+    height: 100%; /* Fill 100% of Notion embed frame height */
+    display: flex;
+    flex-direction: column; /* Stack header and quote vertically */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
@@ -43,6 +45,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
+    flex-shrink: 0; /* Prevents header from shrinking when text is long */
   }
 
   /* Title text with warm golden tinge */
@@ -50,7 +53,7 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: #d49e1e; /* Rich warm gold accent */
+    color: #d49e1e;
     text-transform: uppercase;
   }
 
@@ -75,15 +78,17 @@
     transition: all 0.2s ease;
   }
 
-  /* Golden hover state */
   .arrow-btn:hover {
     background-color: #382e18;
     color: #d49e1e;
     border-color: #d49e1e;
   }
 
-  /* Smooth fade transition wrapper */
+  /* Scrollable Quote Content Area */
   .quote-content {
+    flex: 1; /* Fills remaining height below header */
+    overflow-y: auto; /* Adds scrollbar ONLY if content overflows */
+    padding-right: 6px; /* Space between text and scrollbar */
     transition: opacity 0.3s ease, transform 0.3s ease;
     opacity: 1;
     transform: translateY(0);
@@ -101,7 +106,6 @@
     line-height: 1.5;
     color: #dddddd;
     margin-bottom: 10px;
-    min-height: 42px;
   }
 
   /* Author text */
@@ -110,25 +114,43 @@
     color: #888888;
     text-align: right;
   }
+
+  /* Custom Aesthetic Dark Mode Scrollbar */
+  .quote-content::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .quote-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .quote-content::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 4px;
+  }
+
+  .quote-content::-webkit-scrollbar-thumb:hover {
+    background: #d49e1e; /* Gold color on scrollbar hover */
+  }
 </style>
 </head>
 <body>
 
   <div class="quote-card">
-  <div class="card-header">
-    <span class="title-text">💬 QUOTE SPOTLIGHT</span>
-    <div class="button-group">
-      <button class="arrow-btn" onclick="prevQuote()" title="Previous Quote">&#10094;</button>
-      <button class="arrow-btn" onclick="nextQuote()" title="Next Quote">&#10095;</button>
+    <div class="card-header">
+      <span class="title-text">💬 QUOTE SPOTLIGHT</span>
+      <div class="button-group">
+        <button class="arrow-btn" onclick="prevQuote()" title="Previous Quote">&#10094;</button>
+        <button class="arrow-btn" onclick="nextQuote()" title="Next Quote">&#10095;</button>
+      </div>
+    </div>
+    
+    <!-- Animated & Scrollable Content Container -->
+    <div id="quoteContent" class="quote-content">
+      <div class="quote-text" id="quoteText">Loading quote...</div>
+      <div class="quote-author" id="quoteAuthor"></div>
     </div>
   </div>
-  
-  <!-- Animated Content Container -->
-  <div id="quoteContent" class="quote-content">
-    <div class="quote-text" id="quoteText">Loading quote...</div>
-    <div class="quote-author" id="quoteAuthor"></div>
-  </div>
-</div>
 
   <script>
   let quotesList = [];
@@ -162,6 +184,9 @@
       const quote = quotesList[quoteIndex];
       document.getElementById("quoteText").innerText = `"${quote.text}"`;
       document.getElementById("quoteAuthor").innerText = `— ${quote.author}`;
+
+      // Reset scroll position back to the top when a new quote loads
+      container.scrollTop = 0;
 
       container.classList.remove("fade-out");
     }, 300);
